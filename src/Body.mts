@@ -1,23 +1,20 @@
 export class Body {
-    mass; // Body mass, in KG
-    radius; // Body radius, in meters
+    pos: {x: number, y: number}; // Object x-y position, in meters
+    mass: number; // Body mass, in KG
+    radius: number; // Body radius, in meters
 
     // Render properties
-    #color;
+    #color: string;
 
-    constructor(mass, radius) {
-        this.mass = mass;
-        this.radius = radius;
-    }
-
-    // Private setters
-    setColor(color: string): Body {
-        this.#color = color;
-        return this;
+    constructor(opts: {pos: {x: number, y: number}, mass: number, radius: number, color?: string}) {
+        this.pos = opts.pos;
+        this.mass = opts.mass;
+        this.radius = opts.radius;
+        this.#color = opts?.color ?? "#d01dd9";
     }
 
     // Render method
-    render(ctx) {
+    render(ctx: CanvasRenderingContext2D) {
         ctx.fillStyle = this.#color;
     }
 };

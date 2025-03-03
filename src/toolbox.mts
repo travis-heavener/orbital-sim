@@ -1,5 +1,5 @@
 // Adjust canvas size based on viewport
-export const adjustViewport = (canvas) => {
+export const adjustViewport = (canvas): [number, number] => {
     // Calculate canvas dimensions
     const vw = window.innerWidth / 100;
     const vh = window.innerHeight / 100;
@@ -8,4 +8,6 @@ export const adjustViewport = (canvas) => {
     // Update canvas dimensions
     canvas.width = canvas.height = size;
     $(canvas).css({"width": canvas.width, "height": canvas.height});
+
+    return [size, size];
 }

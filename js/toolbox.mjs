@@ -7,4 +7,5 @@ export const adjustViewport = (canvas) => {
     // Update canvas dimensions
     canvas.width = canvas.height = size;
     $(canvas).css({ "width": canvas.width, "height": canvas.height });
+    return [size, size];
 };

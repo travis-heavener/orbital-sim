@@ -19,7 +19,7 @@ body {
     overflow-x: hidden;
     overflow-y: auto;
 
-    background-color: darkturquoise;
+    background-color: #00ced1;
 }
 
 canvas {
@@ -30,4 +30,6 @@ canvas {
     margin-top: 10vh;
     width: var(--canvas-size);
     height: var(--canvas-size);
+
+    background-color: #fff;
 }
