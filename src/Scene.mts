@@ -2,10 +2,10 @@ import { Body } from "./Body.mjs";
 import { adjustViewport } from "./toolbox.mjs";
 
 export class Scene {
-    #canvas; // Reference to the HTML canvas element
-    #ctx; // Reference to the canvas 2D rendering context
-    #WIDTH; // Canvas dimensions
-    #HEIGHT; // Canvas dimensions
+    #canvas: HTMLCanvasElement; // Reference to the HTML canvas element
+    #ctx: CanvasRenderingContext2D; // Reference to the canvas 2D rendering context
+    #WIDTH: number; // Canvas dimensions
+    #HEIGHT: number; // Canvas dimensions
 
     #tickRate: number; // In MS, time between simulation ticks
     #drawRate: number; // In MS, time between render calls
