@@ -1,0 +1,31 @@
+*, html {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+}
+
+html {
+    width: 100vw;
+    height: 100vh;
+}
+
+body {
+    position: absolute;
+    width: 100%;
+    min-height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+canvas {
+    --canvas-size: min(75vw, 65vh);
+
+    display: block;
+    margin: 0 auto;
+    margin-top: 10vh;
+    width: var(--canvas-size);
+    height: var(--canvas-size);
+    background-color: red;
+}
