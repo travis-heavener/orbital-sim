@@ -1,3 +1,5 @@
+import { SceneOpts } from "./Scene.mjs";
+
 export class Body {
     pos: {x: number, y: number}; // Object x-y position, in meters
     mass: number; // Body mass, in KG
@@ -14,7 +16,20 @@ export class Body {
     }
 
     // Render method
-    render(ctx: CanvasRenderingContext2D) {
+    render(ctx: CanvasRenderingContext2D, sceneOpts: SceneOpts) {
+        // Determine scaled radius
+        const { mPerPx, width, height } = sceneOpts;
+        
+        const x = (sceneOpts.center.x - this.pos.x) / mPerPx;
+        const y = (sceneOpts.center.y - this.pos.y) / mPerPx;
+        const radius = this.radius / mPerPx;
+
+        // Draw from center-origin
+        ctx.beginPath();
+        ctx.arc(width/2 - x, height/2 + y, radius, 0, 2 * Math.PI);
+
+        // Fill
         ctx.fillStyle = this.#color;
+        ctx.fill();
     }
 };

@@ -1,11 +1,17 @@
 import { Body } from "./Body.mjs";
 import { adjustViewport } from "./toolbox.mjs";
 
+export type SceneOpts = {
+    center: {x: number, y: number}, // Center position
+    mPerPx: number, // Meters per pixel
+    width: number, // Canvas dimensions
+    height: number // Canvas dimensions
+};
+
 export class Scene {
     #canvas: HTMLCanvasElement; // Reference to the HTML canvas element
     #ctx: CanvasRenderingContext2D; // Reference to the canvas 2D rendering context
-    #WIDTH: number; // Canvas dimensions
-    #HEIGHT: number; // Canvas dimensions
+    #sceneOpts: SceneOpts; // Canvas rendering options
 
     #tickRate: number; // In MS, time between simulation ticks
     #drawRate: number; // In MS, time between render calls
@@ -23,11 +29,19 @@ export class Scene {
         this.#drawRate = drawRate;
         this.#bodies = [];
 
+        this.#sceneOpts = {
+            center: {x: 0, y: 0},
+            mPerPx: 3e5,
+            width: 0, height: 0
+        };
+
         // Bind viewport change events
-        [this.#WIDTH, this.#HEIGHT] = adjustViewport(this.#canvas);
-        $(window).on("resize", () => {
-            [this.#WIDTH, this.#HEIGHT] = adjustViewport(this.#canvas);
-        });
+        this.#updateViewport();
+        $(window).on("resize", () => this.#updateViewport());
+    }
+
+    #updateViewport() {
+        [this.#sceneOpts.width, this.#sceneOpts.height] = adjustViewport(this.#canvas);
     }
 
     add(body: Body) {
@@ -39,10 +53,11 @@ export class Scene {
 
     // Draw method
     #draw() {
-        this.#ctx.clearRect(0, 0, this.#WIDTH, this.#HEIGHT);
+        // Clear canvas
+        this.#ctx.clearRect(0, 0, this.#sceneOpts.width, this.#sceneOpts.height);
 
         // Render children
-        this.#bodies.forEach(b => b.render(this.#ctx));
+        this.#bodies.forEach(b => b.render(this.#ctx, this.#sceneOpts));
     }
 
     start() {
