@@ -13,10 +13,13 @@ html {
 
 body {
     position: absolute;
+
     width: 100%;
     min-height: 100%;
     overflow-x: hidden;
     overflow-y: auto;
+
+    background-color: darkturquoise;
 }
 
 canvas {
@@ -27,5 +30,4 @@ canvas {
     margin-top: 10vh;
     width: var(--canvas-size);
     height: var(--canvas-size);
-    background-color: red;
 }
