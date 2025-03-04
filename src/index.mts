@@ -8,7 +8,7 @@ $(() => {
     const canvas = $("canvas")[0] as HTMLCanvasElement;
 
     // Create Scene
-    scene = new Scene(canvas, 20, 100);
+    globalThis.scene = scene = new Scene(canvas, 20, 100);
 
     // Sim init
     init();
@@ -22,8 +22,8 @@ const init = () => {
     const bodyA = new Body({
         "pos": new Vector2(0, 0),
         "mass": 5.972e24,
-        "radius": 6.378e6 * 3,
-        "color": "#b2d100",
+        "radius": 6.378e6,
+        "color": "#0c8532",
         "name": "Earth"
     });
     scene.add(bodyA);
@@ -32,13 +32,16 @@ const init = () => {
         "pos": new Vector2(3.844e8, 0),
         "velocity": new Vector2(0, 1.022e3),
         "mass": 7.348e22,
-        "radius": 1.740e6 * 3,
-        "color": "#d100b2",
+        "radius": 1.740e6,
+        "color": "#a4a4a4",
         "name": "Moon"
     });
     scene.add(bodyB);
 
     // Timewarp
-    scene.setZoom(0.18);
-    scene.setTimewarpScale(1e6);
+    scene.setZoom(0.22);
+    scene.setTimewarpScale(2e5);
+
+    // Track Earth
+    scene.track(bodyA);
 };

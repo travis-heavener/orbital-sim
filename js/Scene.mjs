@@ -10,9 +10,11 @@ export class Scene {
     #tickRate; // In MS, time between simulation ticks
     #drawRate; // In MS, time between render calls
     #bodies; // Array of Body objects in simulation
+    #trackedBody = null;
     // Last sim-tick timestamp
     #lastTickTS;
     // Intervals
+    #isRunning = false;
     #tickTimeout;
     #drawTimeout;
     constructor(canvas, ticksPerSec, framesPerSec) {
@@ -30,16 +32,12 @@ export class Scene {
         this.#updateViewport();
         $(window).on("resize", () => this.#updateViewport());
     }
-    add(body) {
-        this.#bodies.push(body);
-    }
+    add(body) { this.#bodies.push(body); }
     // Simulation setters
-    setZoom(scale) {
-        this.#sceneOpts.mPerPx = DEFAULT_MPERPX / scale;
-    }
-    setTimewarpScale(scale) {
-        this.#timewarpScale = scale;
-    }
+    setZoom(scale) { this.#sceneOpts.mPerPx = DEFAULT_MPERPX / scale; }
+    setTimewarpScale(scale) { this.#timewarpScale = scale; }
+    track(body) { this.#trackedBody = body; }
+    untrack() { this.#trackedBody = null; }
     #updateViewport() {
         [this.#sceneOpts.width, this.#sceneOpts.height] = adjustViewport(this.#canvas);
     }
@@ -49,7 +47,11 @@ export class Scene {
         const dt = (this.#lastTickTS ? (Date.now() - this.#lastTickTS) : this.#tickRate) / 1e3;
         const iter = 100;
         const dtScaled = dt * this.#timewarpScale / iter;
+        console.log(dt);
         for (let i = 0; i < iter; ++i) {
+            // Track a tracked/focused body
+            if (this.#trackedBody !== null)
+                this.#sceneOpts.center = this.#trackedBody.pos;
             // Tick each body
             this.#bodies.forEach(b => b.tick(this.#bodies, dtScaled));
             // Clear each body's ForcesCache
@@ -58,7 +60,8 @@ export class Scene {
         // Update timestamp
         this.#lastTickTS = Date.now();
         // Update interval
-        this.#tickTimeout = setTimeout(() => this.#tick(), this.#tickRate);
+        if (this.#isRunning)
+            this.#tickTimeout = setTimeout(() => this.#tick(), this.#tickRate);
     }
     // Draw method
     #draw() {
@@ -67,19 +70,25 @@ export class Scene {
         // Render children
         this.#bodies.forEach(b => b.render(this.#ctx, this.#sceneOpts));
         // Update interval
-        this.#drawTimeout = setTimeout(() => this.#draw(), this.#drawRate);
+        if (this.#isRunning)
+            this.#drawTimeout = setTimeout(() => this.#draw(), this.#drawRate);
     }
     // Start intervals
     start() {
+        if (this.#isRunning)
+            return console.warn("Simulation already running.");
         // Initial game tick
         this.#tick();
         this.#tickTimeout = setTimeout(() => this.#tick(), this.#tickRate);
         this.#drawTimeout = setTimeout(() => this.#draw(), this.#drawRate);
+        this.#isRunning = true;
     }
     // Stop intervals
     stop() {
         clearTimeout(this.#tickTimeout);
         clearTimeout(this.#drawTimeout);
+        this.#lastTickTS = null;
+        this.#isRunning = false;
     }
 }
 ;
