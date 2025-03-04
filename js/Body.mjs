@@ -1,9 +1,13 @@
 import { calcNewtonianGrav, uuidv4 } from "./toolbox.mjs";
+import { Vector2 } from "./Vector2.mjs";
 export class Body {
     id; // UUID for each body
-    pos; // Object x-y position, in meters
+    pos; // Cartesian coordinates, in meters
+    velocity; // Body velocity components, in m/s
+    accel; // Body velocity components, in m/s/s
     mass; // Body mass, in KG
     radius; // Body radius, in meters
+    name; // Body name
     // Render properties
     #color;
     // Cached gravitational forces between other bodies
@@ -11,21 +15,30 @@ export class Body {
     constructor(opts) {
         this.id = uuidv4();
         this.pos = opts.pos;
+        this.velocity = opts?.velocity ?? new Vector2();
+        this.accel = opts?.accel ?? new Vector2();
         this.mass = opts.mass;
         this.radius = opts.radius;
+        this.name = opts?.name ?? "";
         this.#color = opts?.color ?? "#d01dd9";
         this.#forcesCache = {};
     }
     // Tick method
-    tick(bodies) {
+    tick(bodies, dt) {
         // Calculate force from all other bodies
+        const F_net = new Vector2();
         for (const body of bodies) {
             if (body.id === this.id)
                 continue; // Skip this
             if (!Object.hasOwn(this.#forcesCache, body.id))
                 calcNewtonianGrav(this, body);
-            const force = this.#forcesCache[body.id];
+            F_net.add(this.#forcesCache[body.id]);
         }
+        // Update telemetry
+        F_net.scale(1 / this.mass);
+        this.accel = F_net;
+        this.velocity.add(Vector2.scale(this.accel, dt));
+        this.pos.add(Vector2.scale(this.velocity, dt));
     }
     // Render method
     render(ctx, sceneOpts) {

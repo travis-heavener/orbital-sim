@@ -23,7 +23,7 @@ body {
 }
 
 canvas {
-    --canvas-size: min(75vw, 65vh);
+    --canvas-size: min(80vw, 80vh);
 
     display: block;
     margin: 0 auto;
@@ -31,5 +31,5 @@ canvas {
     width: var(--canvas-size);
     height: var(--canvas-size);
 
-    background-color: #fff;
+    background-color: #090909;
 }

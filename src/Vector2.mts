@@ -2,7 +2,7 @@ export class Vector2 {
     x: number;
     y: number;
 
-    constructor(x: number, y: number) {
+    constructor(x=0, y=0) {
         this.x = x;
         this.y = y;
     }
@@ -23,6 +23,11 @@ export class Vector2 {
         this.y *= scale;
     }
 
+    add(B: Vector2) {
+        this.x += B.x;
+        this.y += B.y;
+    }
+
     // Static methods
 
     // Creates a new Vector2 from a radian angle
@@ -35,5 +40,10 @@ export class Vector2 {
     // Adds two vectors and returns the sum
     static add(A: Vector2, B: Vector2): Vector2 {
         return new Vector2(A.x + B.x, A.y + B.y);
+    }
+
+    // Scales a vector and returns the new Vector2
+    static scale(A: Vector2, scalar: number): Vector2 {
+        return new Vector2(A.x * scalar, A.y * scalar);
     }
 };

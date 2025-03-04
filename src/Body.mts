@@ -9,9 +9,13 @@ type ForcesCache = {
 
 export class Body {
     id: string; // UUID for each body
-    pos: {x: number, y: number}; // Object x-y position, in meters
+
+    pos: Vector2; // Cartesian coordinates, in meters
+    velocity: Vector2; // Body velocity components, in m/s
+    accel: Vector2; // Body velocity components, in m/s/s
     mass: number; // Body mass, in KG
     radius: number; // Body radius, in meters
+    name: string; // Body name
 
     // Render properties
     #color: string;
@@ -19,26 +23,38 @@ export class Body {
     // Cached gravitational forces between other bodies
     #forcesCache: ForcesCache;
 
-    constructor(opts: {pos: {x: number, y: number}, mass: number, radius: number, color?: string}) {
+    constructor(opts: {pos: Vector2, velocity?: Vector2, accel?: Vector2, mass: number, radius: number, color?: string, name?: string}) {
         this.id = uuidv4();
+
         this.pos = opts.pos;
+        this.velocity = opts?.velocity ?? new Vector2();
+        this.accel = opts?.accel ?? new Vector2();
         this.mass = opts.mass;
         this.radius = opts.radius;
+        this.name = opts?.name ?? "";
+
         this.#color = opts?.color ?? "#d01dd9";
         this.#forcesCache = {} as ForcesCache;
     }
 
     // Tick method
-    tick(bodies: Body[]) {
+    tick(bodies: Body[], dt: number) {
         // Calculate force from all other bodies
+        const F_net = new Vector2();
         for (const body of bodies) {
             if (body.id === this.id) continue; // Skip this
 
             if (!Object.hasOwn(this.#forcesCache, body.id))
                 calcNewtonianGrav(this, body);
 
-            const force = this.#forcesCache[body.id];
+            F_net.add(this.#forcesCache[body.id]);
         }
+
+        // Update telemetry
+        F_net.scale(1 / this.mass);
+        this.accel = F_net;
+        this.velocity.add(Vector2.scale(this.accel, dt));
+        this.pos.add(Vector2.scale(this.velocity, dt));
     }
 
     // Render method

@@ -1,8 +1,11 @@
 import { Body } from "./Body.mjs";
 import { adjustViewport } from "./toolbox.mjs";
+import { Vector2 } from "./Vector2.mjs";
+
+const DEFAULT_MPERPX = 3e5;
 
 export type SceneOpts = {
-    center: {x: number, y: number}, // Center position
+    center: Vector2, // Center position, in 
     mPerPx: number, // Meters per pixel
     width: number, // Canvas dimensions
     height: number // Canvas dimensions
@@ -13,25 +16,32 @@ export class Scene {
     #ctx: CanvasRenderingContext2D; // Reference to the canvas 2D rendering context
     #sceneOpts: SceneOpts; // Canvas rendering options
 
+    // Simulation settings
+    #timewarpScale = 1; // Timewarp scale
+
     #tickRate: number; // In MS, time between simulation ticks
     #drawRate: number; // In MS, time between render calls
 
     #bodies: Body[]; // Array of Body objects in simulation
 
-    #tickInterval: number;
-    #drawInterval: number;
+    // Last sim-tick timestamp
+    #lastTickTS: number;
 
-    constructor(canvas: HTMLCanvasElement, tickRate: number, drawRate: number) {
+    // Intervals
+    #tickTimeout: number;
+    #drawTimeout: number;
+
+    constructor(canvas: HTMLCanvasElement, ticksPerSec: number, framesPerSec: number) {
         this.#canvas = canvas;
         this.#ctx = this.#canvas.getContext("2d");
 
-        this.#tickRate = tickRate;
-        this.#drawRate = drawRate;
+        this.#tickRate = 1 / ticksPerSec;
+        this.#drawRate = 1 / framesPerSec;
         this.#bodies = [];
 
         this.#sceneOpts = {
-            center: {x: 0, y: 0},
-            mPerPx: 3e5,
+            center: new Vector2(),
+            mPerPx: DEFAULT_MPERPX,
             width: 0, height: 0
         };
 
@@ -40,21 +50,43 @@ export class Scene {
         $(window).on("resize", () => this.#updateViewport());
     }
 
-    #updateViewport() {
-        [this.#sceneOpts.width, this.#sceneOpts.height] = adjustViewport(this.#canvas);
-    }
-
     add(body: Body) {
         this.#bodies.push(body);
     }
 
+    // Simulation setters
+    setZoom(scale: number) {
+        this.#sceneOpts.mPerPx = DEFAULT_MPERPX / scale;
+    }
+
+    setTimewarpScale(scale: number) {
+        this.#timewarpScale = scale;
+    }
+
+    #updateViewport() {
+        [this.#sceneOpts.width, this.#sceneOpts.height] = adjustViewport(this.#canvas);
+    }
+
     // Tick method
     #tick() {
-        // Tick each body
-        this.#bodies.forEach(b => b.tick(this.#bodies));
-        
-        // Clear each body's ForcesCache
-        // this.#bodies.forEach(b => b.clearForcesCache());
+        // Determine elapsed seconds
+        const dt = (this.#lastTickTS ? (Date.now() - this.#lastTickTS) : this.#tickRate) / 1e3;
+        const iter = 100;
+        const dtScaled = dt * this.#timewarpScale / iter;
+
+        for (let i = 0; i < iter; ++i) {
+            // Tick each body
+            this.#bodies.forEach(b => b.tick(this.#bodies, dtScaled));
+
+            // Clear each body's ForcesCache
+            this.#bodies.forEach(b => b.clearForcesCache());
+        }
+
+        // Update timestamp
+        this.#lastTickTS = Date.now();
+
+        // Update interval
+        this.#tickTimeout = setTimeout(() => this.#tick(), this.#tickRate);
     }
 
     // Draw method
@@ -64,20 +96,23 @@ export class Scene {
 
         // Render children
         this.#bodies.forEach(b => b.render(this.#ctx, this.#sceneOpts));
+
+        // Update interval
+        this.#drawTimeout = setTimeout(() => this.#draw(), this.#drawRate);
     }
 
+    // Start intervals
     start() {
         // Initial game tick
         this.#tick();
 
-        // Start intervals
-        this.#tickInterval = setInterval(() => this.#tick(), this.#tickRate);
-        this.#drawInterval = setInterval(() => this.#draw(), this.#drawRate);
+        this.#tickTimeout = setTimeout(() => this.#tick(), this.#tickRate);
+        this.#drawTimeout = setTimeout(() => this.#draw(), this.#drawRate);
     }
 
+    // Stop intervals
     stop() {
-        // Stop intervals
-        clearInterval(this.#tickInterval);
-        clearInterval(this.#drawInterval);
+        clearTimeout(this.#tickTimeout);
+        clearTimeout(this.#drawTimeout);
     }
 };
