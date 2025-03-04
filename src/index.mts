@@ -1,7 +1,5 @@
-import { Body } from "./Body.mjs";
-import { earthMoon, twoBodyProblem } from "./presets.mjs";
+import * as presets from "./presets.mjs";
 import { Scene } from "./Scene.mjs";
-import { Vector2 } from "./Vector2.mjs";
 
 let scene: Scene;
 
@@ -20,6 +18,7 @@ const init = () => {
     scene.start();
 
     // Load preset
-    earthMoon(scene);
-    // twoBodyProblem(scene);
+    presets.solarSystem(scene);
+    // presets.earthMoon(scene);
+    // presets.twoBodyProblem(scene);
 };

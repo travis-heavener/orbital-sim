@@ -1,4 +1,4 @@
-import { earthMoon } from "./presets.mjs";
+import * as presets from "./presets.mjs";
 import { Scene } from "./Scene.mjs";
 let scene;
 $(() => {
@@ -12,6 +12,7 @@ const init = () => {
     // Start Scene
     scene.start();
     // Load preset
-    earthMoon(scene);
-    // twoBodyProblem(scene);
+    presets.solarSystem(scene);
+    // presets.earthMoon(scene);
+    // presets.twoBodyProblem(scene);
 };
