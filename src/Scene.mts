@@ -49,7 +49,13 @@ export class Scene {
     }
 
     // Tick method
-    #tick() {}
+    #tick() {
+        // Tick each body
+        this.#bodies.forEach(b => b.tick(this.#bodies));
+        
+        // Clear each body's ForcesCache
+        // this.#bodies.forEach(b => b.clearForcesCache());
+    }
 
     // Draw method
     #draw() {
@@ -61,6 +67,9 @@ export class Scene {
     }
 
     start() {
+        // Initial game tick
+        this.#tick();
+
         // Start intervals
         this.#tickInterval = setInterval(() => this.#tick(), this.#tickRate);
         this.#drawInterval = setInterval(() => this.#draw(), this.#drawRate);

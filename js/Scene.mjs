@@ -30,7 +30,12 @@ export class Scene {
         this.#bodies.push(body);
     }
     // Tick method
-    #tick() { }
+    #tick() {
+        // Tick each body
+        this.#bodies.forEach(b => b.tick(this.#bodies));
+        // Clear each body's ForcesCache
+        // this.#bodies.forEach(b => b.clearForcesCache());
+    }
     // Draw method
     #draw() {
         // Clear canvas
@@ -39,6 +44,8 @@ export class Scene {
         this.#bodies.forEach(b => b.render(this.#ctx, this.#sceneOpts));
     }
     start() {
+        // Initial game tick
+        this.#tick();
         // Start intervals
         this.#tickInterval = setInterval(() => this.#tick(), this.#tickRate);
         this.#drawInterval = setInterval(() => this.#draw(), this.#drawRate);

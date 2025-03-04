@@ -1,6 +1,14 @@
 import { SceneOpts } from "./Scene.mjs";
+import { calcNewtonianGrav, uuidv4 } from "./toolbox.mjs";
+import { Vector2 } from "./Vector2.mjs";
+
+type ForcesCache = {
+    bodyID: string,
+    force: Vector2
+};
 
 export class Body {
+    id: string; // UUID for each body
     pos: {x: number, y: number}; // Object x-y position, in meters
     mass: number; // Body mass, in KG
     radius: number; // Body radius, in meters
@@ -8,11 +16,29 @@ export class Body {
     // Render properties
     #color: string;
 
+    // Cached gravitational forces between other bodies
+    #forcesCache: ForcesCache;
+
     constructor(opts: {pos: {x: number, y: number}, mass: number, radius: number, color?: string}) {
+        this.id = uuidv4();
         this.pos = opts.pos;
         this.mass = opts.mass;
         this.radius = opts.radius;
         this.#color = opts?.color ?? "#d01dd9";
+        this.#forcesCache = {} as ForcesCache;
+    }
+
+    // Tick method
+    tick(bodies: Body[]) {
+        // Calculate force from all other bodies
+        for (const body of bodies) {
+            if (body.id === this.id) continue; // Skip this
+
+            if (!Object.hasOwn(this.#forcesCache, body.id))
+                calcNewtonianGrav(this, body);
+
+            const force = this.#forcesCache[body.id];
+        }
     }
 
     // Render method
@@ -31,5 +57,16 @@ export class Body {
         // Fill
         ctx.fillStyle = this.#color;
         ctx.fill();
+    }
+
+    // Clear forces cache
+    clearForcesCache() {
+        Object.getOwnPropertyNames(this.#forcesCache)
+            .forEach(pair => delete this.#forcesCache[pair]);
+    }
+
+    // Cache a force from a Body to prevent duplicate calculations
+    cacheForce(bodyID: string, force: Vector2) {
+        this.#forcesCache[bodyID] = force;
     }
 };

@@ -1,0 +1,39 @@
+export class Vector2 {
+    x: number;
+    y: number;
+
+    constructor(x: number, y: number) {
+        this.x = x;
+        this.y = y;
+    }
+
+    normalize() {
+        const hypot = Math.hypot(this.x, this.y);
+        this.x /= hypot;
+        this.y /= hypot;
+    }
+
+    flip() {
+        this.x *= -1;
+        this.y *= -1;
+    }
+
+    scale(scale: number) {
+        this.x *= scale;
+        this.y *= scale;
+    }
+
+    // Static methods
+
+    // Creates a new Vector2 from a radian angle
+    static fromAngle(theta: number, magnitude?: number): Vector2 {
+        const vec2 = new Vector2(Math.cos(theta), Math.sin(theta));
+        if (magnitude) vec2.scale(magnitude);
+        return vec2;
+    }
+
+    // Adds two vectors and returns the sum
+    static add(A: Vector2, B: Vector2): Vector2 {
+        return new Vector2(A.x + B.x, A.y + B.y);
+    }
+};
