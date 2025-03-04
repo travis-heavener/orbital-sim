@@ -91,12 +91,12 @@ export class Scene {
             switch (e.code) {
                 case "ArrowUp":
                     e.preventDefault();
-                    this.#sceneOpts.mPerPx *= 1.25;
+                    this.#sceneOpts.mPerPx /= 1.25;
                     this.#sceneOpts.mPerPx = Math.max(DEFAULT_MPERPX, this.#sceneOpts.mPerPx);
                     break;
                 case "ArrowDown":
                     e.preventDefault();
-                    this.#sceneOpts.mPerPx /= 1.25;
+                    this.#sceneOpts.mPerPx *= 1.25;
                     this.#sceneOpts.mPerPx = Math.max(DEFAULT_MPERPX, this.#sceneOpts.mPerPx);
                     break;
                 case "KeyP":
