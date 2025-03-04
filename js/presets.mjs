@@ -30,14 +30,23 @@ export const solarSystem = (scene) => {
         "velocity": new Vector2(0, 29_780),
         "mass": 5.972e24,
         "radius": 6.378e6 * 500,
-        "color": "#0c8532",
+        "color": "#4d8feb",
         "name": "Earth (x500)"
+    });
+    const mars = new Body({
+        "pos": new Vector2(2.28e11, 0),
+        "velocity": new Vector2(0, 24_080),
+        "mass": 6.417e23,
+        "radius": 3.390e6 * 500,
+        "color": "#b56765",
+        "name": "Mars (x500)"
     });
     // Add to scene
     scene.add(sun);
     scene.add(mercury);
     scene.add(venus);
     scene.add(earth);
+    scene.add(mars);
     // Timewarp
     scene.setZoom(0.0006);
     scene.setTimewarpScale(2e6);
@@ -50,7 +59,7 @@ export const earthMoon = (scene) => {
         "pos": new Vector2(0, 0),
         "mass": 5.972e24,
         "radius": 6.378e6,
-        "color": "#0c8532",
+        "color": "#4d8feb",
         "name": "Earth"
     });
     const bodyB = new Body({
