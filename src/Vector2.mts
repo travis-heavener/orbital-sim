@@ -7,8 +7,12 @@ export class Vector2 {
         this.y = y;
     }
 
+    getMagnitude() {
+        return Math.hypot(this.x, this.y);
+    }
+
     normalize() {
-        const hypot = Math.hypot(this.x, this.y);
+        const hypot = this.getMagnitude();
         this.x /= hypot;
         this.y /= hypot;
     }

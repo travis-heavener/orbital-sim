@@ -14,6 +14,7 @@ export class Scene {
     // Last sim-tick timestamp
     #lastTickTS;
     // Intervals
+    #lastManualRedraw = 0;
     #isRunning = false;
     #tickTimeout;
     #drawTimeout;
@@ -41,88 +42,6 @@ export class Scene {
     setTimewarpScale(scale) { this.#timewarpScale = scale; }
     track(body) { this.#trackedBody = body; }
     untrack() { this.#trackedBody = null; }
-    #bindEvents() {
-        // Bind viewport change events
-        $(window).on("resize", () => this.#updateViewport());
-        // Pause game on lost focus
-        let isPausedOnBlur = false;
-        $(window).on("blur", () => {
-            if (!this.#isRunning)
-                return;
-            isPausedOnBlur = true;
-            this.stop();
-        });
-        $(window).on("focus", () => {
-            if (!isPausedOnBlur)
-                return;
-            this.start();
-            isPausedOnBlur = false;
-        });
-        $("body").on("wheel", e => {
-            const { deltaY } = e.originalEvent;
-            const viewportDelta = deltaY / window.innerHeight;
-            this.#sceneOpts.mPerPx *= 1 + viewportDelta;
-            this.#sceneOpts.mPerPx = Math.max(DEFAULT_MPERPX, this.#sceneOpts.mPerPx);
-        });
-        $(window).on("keydown", e => {
-            switch (e.code) {
-                case "ArrowUp":
-                    e.preventDefault();
-                    this.#sceneOpts.mPerPx /= 1.25;
-                    this.#sceneOpts.mPerPx = Math.max(DEFAULT_MPERPX, this.#sceneOpts.mPerPx);
-                    break;
-                case "ArrowDown":
-                    e.preventDefault();
-                    this.#sceneOpts.mPerPx *= 1.25;
-                    this.#sceneOpts.mPerPx = Math.max(DEFAULT_MPERPX, this.#sceneOpts.mPerPx);
-                    break;
-                case "KeyP":
-                    this[this.#isRunning ? "stop" : "start"]();
-                    break;
-            }
-        });
-        // Drag events
-        let lastTouch = null;
-        $("canvas").on("mousedown", (e) => {
-            // Drag by Shift + LMB or MMB
-            if (!(e.which === 1 && e.shiftKey) && e.which !== 2)
-                return;
-            // Intercept coordinates
-            lastTouch = new Vector2(e.clientX, e.clientY);
-        });
-        $("canvas").on("mousemove", (e) => {
-            if (lastTouch === null)
-                return;
-            // Cancel tracking
-            if (this.#trackedBody !== null)
-                this.untrack();
-            // Move canvas
-            const offset = new Vector2(lastTouch.x - e.clientX, e.clientY - lastTouch.y);
-            offset.scale(this.#sceneOpts.mPerPx);
-            this.#sceneOpts.center.add(offset);
-            // Record coordinates
-            lastTouch = new Vector2(e.clientX, e.clientY);
-        });
-        $("canvas").on("mouseleave mouseup", () => lastTouch = null);
-        // Intercept click events
-        $("canvas").on("click", e => {
-            if (e.shiftKey)
-                return; // Ignore dragging clicks
-            // Search all visible bodies
-            for (const body of this.#bodies) {
-                if (!body.isVisible())
-                    return; // Skip off-screen elements
-                // Check if click is intercepted by body
-                const visibleRadius = body.radius / this.#sceneOpts.mPerPx;
-                const { x, y } = body.getDrawnPos(this.#sceneOpts);
-                if (Math.hypot(x - e.clientX, y - e.clientY) <= visibleRadius) {
-                    // Track this object
-                    this.track(body);
-                    return;
-                }
-            }
-        });
-    }
     #updateViewport() {
         [this.#sceneOpts.width, this.#sceneOpts.height] = adjustViewport(this.#canvas);
         this.#draw(); // Redraw
@@ -158,6 +77,13 @@ export class Scene {
         if (this.#isRunning)
             this.#drawTimeout = setTimeout(() => this.#draw(), this.#drawRate);
     }
+    // Used to manually redraw the canvas in case the simulation is stopped
+    #requestManualRedraw() {
+        if (!this.#isRunning && Date.now() - this.#lastManualRedraw >= this.#drawRate) {
+            this.#lastManualRedraw = Date.now();
+            this.#draw();
+        }
+    }
     // Start intervals
     start() {
         if (this.#isRunning)
@@ -174,6 +100,97 @@ export class Scene {
         clearTimeout(this.#drawTimeout);
         this.#lastTickTS = null;
         this.#isRunning = false;
+    }
+    #bindEvents() {
+        // Bind viewport change events
+        $(window).on("resize", () => this.#updateViewport());
+        // Pause game on lost focus
+        let isPausedOnBlur = false;
+        $(window).on("blur", () => {
+            if (!this.#isRunning)
+                return;
+            isPausedOnBlur = true;
+            this.stop();
+        });
+        $(window).on("focus", () => {
+            if (!isPausedOnBlur)
+                return;
+            this.start();
+            isPausedOnBlur = false;
+        });
+        $("body").on("wheel", e => {
+            const { deltaY } = e.originalEvent;
+            const viewportDelta = deltaY / window.innerHeight;
+            if (Math.abs(viewportDelta) < 0.002)
+                return;
+            // Update viewport scaling
+            this.#sceneOpts.mPerPx *= 1 + viewportDelta;
+            this.#sceneOpts.mPerPx = Math.max(DEFAULT_MPERPX, this.#sceneOpts.mPerPx);
+            // Request redraw
+            this.#requestManualRedraw();
+        });
+        $(window).on("keydown", e => {
+            switch (e.code) {
+                case "ArrowUp":
+                    e.preventDefault();
+                    this.#sceneOpts.mPerPx /= 1.25;
+                    this.#sceneOpts.mPerPx = Math.max(DEFAULT_MPERPX, this.#sceneOpts.mPerPx);
+                    this.#requestManualRedraw();
+                    break;
+                case "ArrowDown":
+                    e.preventDefault();
+                    this.#sceneOpts.mPerPx *= 1.25;
+                    this.#sceneOpts.mPerPx = Math.max(DEFAULT_MPERPX, this.#sceneOpts.mPerPx);
+                    this.#requestManualRedraw();
+                    break;
+                case "KeyP":
+                    this[this.#isRunning ? "stop" : "start"]();
+                    break;
+            }
+        });
+        // Drag events
+        let lastTouch = null;
+        $("canvas").on("mousedown", (e) => {
+            // Drag by Shift + LMB or MMB
+            if (!(e.which === 1 && e.shiftKey) && e.which !== 2)
+                return;
+            // Intercept coordinates
+            lastTouch = new Vector2(e.clientX, e.clientY);
+        });
+        $("canvas").on("mousemove", (e) => {
+            if (lastTouch === null)
+                return;
+            // Cancel tracking
+            if (this.#trackedBody !== null)
+                this.untrack();
+            // Move canvas
+            const offset = new Vector2(lastTouch.x - e.clientX, e.clientY - lastTouch.y);
+            offset.scale(this.#sceneOpts.mPerPx);
+            this.#sceneOpts.center.add(offset);
+            // Record coordinates
+            lastTouch = new Vector2(e.clientX, e.clientY);
+            // Request redraw
+            this.#requestManualRedraw();
+        });
+        $("canvas").on("mouseleave mouseup", () => lastTouch = null);
+        // Intercept click events
+        $("canvas").on("click", e => {
+            if (e.shiftKey)
+                return; // Ignore dragging clicks
+            // Search all visible bodies
+            for (const body of this.#bodies) {
+                if (!body.isVisible())
+                    return; // Skip off-screen elements
+                // Check if click is intercepted by body
+                const visibleRadius = body.radius / this.#sceneOpts.mPerPx;
+                const { x, y } = body.getDrawnPos(this.#sceneOpts);
+                if (Math.hypot(x - e.clientX, y - e.clientY) <= visibleRadius) {
+                    // Track this object
+                    this.track(body);
+                    return;
+                }
+            }
+        });
     }
 }
 ;
