@@ -77,6 +77,21 @@ export class Scene {
             this.start();
             isPausedOnBlur = false;
         });
+
+        $("body").on("wheel", e => {
+            const { deltaY } = e.originalEvent as WheelEvent;
+            const viewportDelta = deltaY / window.innerHeight;
+            this.#sceneOpts.mPerPx *= 1 + viewportDelta;
+            this.#sceneOpts.mPerPx = Math.max(DEFAULT_MPERPX, this.#sceneOpts.mPerPx);
+        });
+        
+        $(window).on("keydown", e => {
+            if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
+
+            e.preventDefault();
+            this.#sceneOpts.mPerPx *= e.key !== "ArrowUp" ? 1.25 : 0.8;
+            this.#sceneOpts.mPerPx = Math.max(DEFAULT_MPERPX, this.#sceneOpts.mPerPx);
+        });
     }
 
     #updateViewport() {
