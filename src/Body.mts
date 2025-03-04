@@ -128,8 +128,6 @@ export class Body {
             }
         }
 
-        console.log(bodies);
-
         // Calculate telemetry
         let mf = 0;
         let rfCubed = 0;
