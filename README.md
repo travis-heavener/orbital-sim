@@ -15,6 +15,12 @@ Zoom +: `Up Arrow`
 
 Zoom -: `Down Arrow`
 
+~~Timewarp +: `Right Arrow`~~ **WIP**
+
+~~Timewarp -: `Left Arrow`~~ **WIP**
+
+~~Toggle pause on lost focus: `T`~~ **WIP**
+
 ## Setup
 To install Node packages:
 
