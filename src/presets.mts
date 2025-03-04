@@ -151,6 +151,6 @@ export const threeDoomedBodies = (scene: Scene) => {
     scene.add(bodyC);
 
     // Timewarp
-    scene.setZoom(0.6);
-    scene.setTimewarpScale(5e4);
+    scene.setZoom(0.75);
+    scene.setTimewarpScale(1e4);
 };
