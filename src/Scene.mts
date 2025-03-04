@@ -72,10 +72,6 @@ export class Scene {
         const dtScaled = dt * this.#timewarpScale / iter;
 
         for (let i = 0; i < iter; ++i) {
-            // Track a tracked/focused body
-            if (this.#trackedBody !== null)
-                this.#sceneOpts.center = this.#trackedBody.pos;
-
             // Tick each body
             this.#bodies.forEach(b => b.tick(this.#bodies, dtScaled));
 
@@ -93,6 +89,10 @@ export class Scene {
 
     // Draw method
     #draw() {
+        // Track a tracked/focused body
+        if (this.#trackedBody !== null)
+            this.#sceneOpts.center = this.#trackedBody.pos;
+
         // Clear canvas
         this.#ctx.clearRect(0, 0, this.#sceneOpts.width, this.#sceneOpts.height);
 
