@@ -115,8 +115,8 @@ export class Scene {
         $(window).on("focus", () => {
             if (!isPausedOnBlur)
                 return;
-            this.start();
             isPausedOnBlur = false;
+            this.start();
         });
         $("body").on("wheel", e => {
             const { deltaY } = e.originalEvent;
