@@ -19,6 +19,7 @@ export class Body {
 
     // Render properties
     #color: string;
+    #isVisible = false;
 
     // Cached gravitational forces between other bodies
     #forcesCache: ForcesCache;
@@ -73,6 +74,15 @@ export class Body {
         // Fill
         ctx.fillStyle = this.#color;
         ctx.fill();
+
+        // Detect if the Body was drawn in frame
+        if (this.name === "Earth")
+        if ((x + radius > 0 && x - radius < width) && (y + radius > 0 && y - radius < height)) {
+            this.#isVisible = true;
+            console.log(true);
+        } else {
+            console.log(false);
+        }
     }
 
     // Clear forces cache
