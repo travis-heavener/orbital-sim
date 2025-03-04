@@ -55,6 +55,7 @@ export class Scene {
     }
 
     add(body: Body) { this.#bodies.push(body); }
+    clear() { while (this.#bodies.length) this.#bodies.shift(); }
 
     // Simulation setters
     setZoom(scale: number) { this.#sceneOpts.mPerPx = DEFAULT_MPERPX / scale; }
@@ -96,6 +97,9 @@ export class Scene {
 
     #updateViewport() {
         [this.#sceneOpts.width, this.#sceneOpts.height] = adjustViewport(this.#canvas);
+
+        // Redraw
+        this.#draw();
     }
 
     // Tick method

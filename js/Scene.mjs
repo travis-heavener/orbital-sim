@@ -34,6 +34,8 @@ export class Scene {
         this.#bindEvents();
     }
     add(body) { this.#bodies.push(body); }
+    clear() { while (this.#bodies.length)
+        this.#bodies.shift(); }
     // Simulation setters
     setZoom(scale) { this.#sceneOpts.mPerPx = DEFAULT_MPERPX / scale; }
     setTimewarpScale(scale) { this.#timewarpScale = scale; }
@@ -70,6 +72,8 @@ export class Scene {
     }
     #updateViewport() {
         [this.#sceneOpts.width, this.#sceneOpts.height] = adjustViewport(this.#canvas);
+        // Redraw
+        this.#draw();
     }
     // Tick method
     #tick() {
