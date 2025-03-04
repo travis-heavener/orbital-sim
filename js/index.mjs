@@ -15,8 +15,9 @@ const init = () => {
     scene.start();
     // Load preset
     // presets.solarSystem(scene);
-    presets.earthMoon(scene);
+    // presets.earthMoon(scene);
     // presets.twoBodyProblem(scene);
+    presets.threeDoomedBodies(scene);
     // Expose globals to dev console
     exposeGlobals();
 };

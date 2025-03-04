@@ -21,6 +21,11 @@ export const calcNewtonianGrav = (bodyA, bodyB) => {
     bodyA.cacheForce(bodyB.id, force);
     // Flip & cache for bodyB
     bodyB.cacheForce(bodyA.id, Vector2.flip(force));
+    // Check for collision
+    if (Math.sqrt(distSquared) < bodyA.radius + bodyB.radius) {
+        bodyA.cacheCollision(bodyB);
+        bodyB.cacheCollision(bodyA);
+    }
 };
 // Create a v4 UUID (https://stackoverflow.com/a/2117523)
 export const uuidv4 = () => {

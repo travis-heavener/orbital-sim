@@ -118,3 +118,39 @@ export const twoBodyProblem = (scene: Scene) => {
     // Timewarp
     scene.setTimewarpScale(5e4);
 };
+
+export const threeDoomedBodies = (scene: Scene) => {
+    const bodyA = new Body({
+        "pos": new Vector2(4e7, 0),
+        "mass": 2e24,
+        "radius": 8e6,
+        "color": "#ea210c",
+        "name": "Body A"
+    });
+
+    const bodyB = new Body({
+        "pos": new Vector2(0, 4e7),
+        "velocity": new Vector2(1e3, 0),
+        "mass": 5e24,
+        "radius": 8e6,
+        "color": "#0cea21",
+        "name": "Body B"
+    });
+
+    const bodyC = new Body({
+        "pos": new Vector2(-4e7, 0),
+        "velocity": new Vector2(0, 3e3),
+        "mass": 2e25,
+        "radius": 8e6,
+        "color": "#210cea",
+        "name": "Body C"
+    });
+
+    scene.add(bodyA);
+    scene.add(bodyB);
+    scene.add(bodyC);
+
+    // Timewarp
+    scene.setZoom(0.6);
+    scene.setTimewarpScale(5e4);
+};

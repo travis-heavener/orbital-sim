@@ -20,9 +20,11 @@ export class Body {
     // Render properties
     #color: string;
     #isVisible = false;
+    #isDestroyed = false; // Freed on next tick when true
 
-    // Cached gravitational forces between other bodies
+    // Cached data between other bodies
     #forcesCache: ForcesCache;
+    #collidedBodies: Body[];
 
     constructor(opts: {pos: Vector2, velocity?: Vector2, accel?: Vector2, mass: number, radius: number, color?: string, name?: string}) {
         this.id = uuidv4();
@@ -36,6 +38,7 @@ export class Body {
 
         this.#color = opts?.color ?? "#d01dd9";
         this.#forcesCache = {} as ForcesCache;
+        this.#collidedBodies = [];
     }
 
     // Tick method
@@ -80,8 +83,8 @@ export class Body {
         ctx.fill();
     }
 
-    // Clear forces cache
-    clearForcesCache() {
+    // Clear physics caches
+    clearCache() {
         Object.getOwnPropertyNames(this.#forcesCache)
             .forEach(pair => delete this.#forcesCache[pair]);
     }
@@ -91,6 +94,10 @@ export class Body {
         this.#forcesCache[bodyID] = force;
     }
 
+    // Cache collision data between bodies
+    cacheCollision(body: Body) { this.#collidedBodies.push(body); }
+
+    // Calculate the position of the object on the canvas after scaling
     getDrawnPos(sceneOpts: SceneOpts): Vector2 {
         return new Vector2(
             sceneOpts.width/2 - (sceneOpts.center.x - this.pos.x) / sceneOpts.mPerPx,
@@ -99,4 +106,75 @@ export class Body {
     }
 
     isVisible() { return this.#isVisible; }
+    isDestroyed() { return this.#isDestroyed; }
+    destroy() { this.#isDestroyed = true; }
+    getCollidedBodies() { return this.#collidedBodies; }
+
+    // Static methods
+    
+    // Combine two Body objects into one
+    static merge(...bodiesArr: Body[]): Body {
+        // Collect all collided bodies
+        const bodies = new Set(bodiesArr);
+        const bodiesToTraverse = [...bodiesArr];
+
+        while (bodiesToTraverse.length) {
+            const body = bodiesToTraverse.shift();
+            for (const auxBody of body.getCollidedBodies()) {
+                if (!bodies.has(auxBody)) {
+                    bodies.add(auxBody);
+                    bodiesToTraverse.push(auxBody);
+                }
+            }
+        }
+
+        console.log(bodies);
+
+        // Calculate telemetry
+        let mf = 0;
+        let rfCubed = 0;
+        const pf = new Vector2();
+        const vf = new Vector2();
+        const af = new Vector2();
+        const color = [0, 0, 0];
+
+        for (const body of bodies) {
+            mf += body.mass;
+            rfCubed += body.radius ** 3;
+
+            pf.add(new Vector2(body.pos).scale(body.mass));
+            vf.add(new Vector2(body.velocity).scale(body.mass));
+            af.add(new Vector2(body.accel).scale(body.mass));
+
+            // Average colors
+            color[0] += parseInt(body.#color.substring(1, 3), 16);
+            color[1] += parseInt(body.#color.substring(3, 5), 16);
+            color[2] += parseInt(body.#color.substring(5, 7), 16);
+
+            // Mark as destroyed
+            body.destroy();
+        }
+
+        // Mix color channels
+        color[0] /= bodies.size;
+        color[1] /= bodies.size;
+        color[2] /= bodies.size;
+        const formatComp = (c: number) => (~~c).toString(16).padStart(2, "0");
+        const colorHex = `#${formatComp(color[0])}${formatComp(color[1])}${formatComp(color[2])}`;
+
+        // Divide by total mass
+        pf.scale(1 / mf);
+        vf.scale(1 / mf);
+        af.scale(1 / mf);
+
+        // Create new Body
+        return new Body({
+            "pos": pf,
+            "velocity": vf,
+            "accel": af,
+            "mass": mf,
+            "color": colorHex,
+            "radius": Math.cbrt(rfCubed)
+        });
+    }
 };

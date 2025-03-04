@@ -80,8 +80,33 @@ export class Scene {
             // Tick each body
             this.#bodies.forEach(b => b.tick(this.#bodies, dtScaled));
 
+            // Check for collisions
+            const newBodies = [];
+            for (const body of this.#bodies) {
+                // Merge bodies if collided
+                const collidedBodies = body.getCollidedBodies();
+                if (!body.isDestroyed() && collidedBodies.length)
+                    newBodies.push( Body.merge(body, ...collidedBodies) );
+            }
+
+            // Free destroyed bodies (O(1) swap removal)
+            for (let j = 0; j < this.#bodies.length; ++j) {
+                const body = this.#bodies[j];
+                if (body.isDestroyed()) {
+                    this.#bodies[j] = this.#bodies[this.#bodies.length-1];
+                    this.#bodies.pop();
+                    --j;
+
+                    // Untrack if destroyed
+                    if (this.#trackedBody === body) this.untrack();
+                }
+            }
+
+            // Insert new bodies
+            this.#bodies.push(...newBodies);
+
             // Clear each body's ForcesCache
-            this.#bodies.forEach(b => b.clearForcesCache());
+            this.#bodies.forEach(b => b.clearCache());
         }
 
         // Update timestamp

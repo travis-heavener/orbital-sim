@@ -1,7 +1,19 @@
 export class Vector2 {
     x;
     y;
-    constructor(x = 0, y = 0) {
+    constructor(x, y) {
+        // Default constructor
+        if (arguments.length === 0) {
+            this.x = this.y = 0;
+            return;
+        }
+        // Copy constructor
+        if (x.constructor === Vector2) {
+            this.x = x.x;
+            this.y = x.y;
+            return;
+        }
+        // Numeric constructor
         this.x = x;
         this.y = y;
     }
@@ -20,6 +32,7 @@ export class Vector2 {
     scale(scale) {
         this.x *= scale;
         this.y *= scale;
+        return this;
     }
     add(B) {
         this.x += B.x;

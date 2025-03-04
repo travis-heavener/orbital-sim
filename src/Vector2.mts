@@ -2,8 +2,22 @@ export class Vector2 {
     x: number;
     y: number;
 
-    constructor(x=0, y=0) {
-        this.x = x;
+    constructor(x?: number | Vector2, y?: number) {
+        // Default constructor
+        if (arguments.length === 0) {
+            this.x = this.y = 0;
+            return;
+        }
+
+        // Copy constructor
+        if (x.constructor === Vector2) {
+            this.x = x.x;
+            this.y = x.y;
+            return;
+        }
+
+        // Numeric constructor
+        this.x = x as number;
         this.y = y;
     }
 
@@ -22,9 +36,10 @@ export class Vector2 {
         this.y *= -1;
     }
 
-    scale(scale: number) {
+    scale(scale: number): Vector2 {
         this.x *= scale;
         this.y *= scale;
+        return this;
     }
 
     add(B: Vector2) {
