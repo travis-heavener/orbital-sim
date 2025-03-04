@@ -28,9 +28,10 @@ export class Scene {
             mPerPx: DEFAULT_MPERPX,
             width: 0, height: 0
         };
-        // Bind viewport change events
+        // Initial viewport update
         this.#updateViewport();
-        $(window).on("resize", () => this.#updateViewport());
+        // Bind DOM events
+        this.#bindEvents();
     }
     add(body) { this.#bodies.push(body); }
     // Simulation setters
@@ -38,6 +39,22 @@ export class Scene {
     setTimewarpScale(scale) { this.#timewarpScale = scale; }
     track(body) { this.#trackedBody = body; }
     untrack() { this.#trackedBody = null; }
+    #bindEvents() {
+        // Bind viewport change events
+        $(window).on("resize", () => this.#updateViewport());
+        // Pause game on lost focus
+        let isPausedOnBlur = false;
+        $(window).on("blur", () => {
+            isPausedOnBlur = true;
+            this.stop();
+        });
+        $(window).on("focus", () => {
+            if (!isPausedOnBlur)
+                return;
+            this.start();
+            isPausedOnBlur = false;
+        });
+    }
     #updateViewport() {
         [this.#sceneOpts.width, this.#sceneOpts.height] = adjustViewport(this.#canvas);
     }
