@@ -22,6 +22,10 @@ export class Vector2 {
         this.x += B.x;
         this.y += B.y;
     }
+    copyFrom(A) {
+        this.x = A.x;
+        this.y = A.y;
+    }
     // Static methods
     // Creates a new Vector2 from a radian angle
     static fromAngle(theta, magnitude) {

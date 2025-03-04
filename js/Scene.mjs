@@ -69,6 +69,31 @@ export class Scene {
             this.#sceneOpts.mPerPx *= e.key !== "ArrowUp" ? 1.25 : 0.8;
             this.#sceneOpts.mPerPx = Math.max(DEFAULT_MPERPX, this.#sceneOpts.mPerPx);
         });
+        // Drag events
+        let lastTouch = null;
+        $("canvas").on("mousedown", (e) => {
+            // Drag by Shift + LMB or MMB
+            if (!(e.which === 1 && e.shiftKey) && e.which !== 2)
+                return;
+            // Intercept coordinates
+            lastTouch = new Vector2(e.clientX, e.clientY);
+        });
+        $("canvas").on("mousemove", (e) => {
+            if (lastTouch === null)
+                return;
+            // Cancel tracking
+            if (this.#trackedBody !== null)
+                this.untrack();
+            // Move canvas
+            const dx = lastTouch.x - e.clientX;
+            const dy = e.clientY - lastTouch.y;
+            const offset = new Vector2(dx, dy);
+            offset.scale(this.#sceneOpts.mPerPx);
+            this.#sceneOpts.center.add(offset);
+            // Record coordinates
+            lastTouch = new Vector2(e.clientX, e.clientY);
+        });
+        $("canvas").on("mouseleave mouseup", () => lastTouch = null);
     }
     #updateViewport() {
         [this.#sceneOpts.width, this.#sceneOpts.height] = adjustViewport(this.#canvas);
@@ -97,7 +122,7 @@ export class Scene {
     #draw() {
         // Track a tracked/focused body
         if (this.#trackedBody !== null)
-            this.#sceneOpts.center = this.#trackedBody.pos;
+            this.#sceneOpts.center.copyFrom(this.#trackedBody.pos);
         // Clear canvas
         this.#ctx.clearRect(0, 0, this.#sceneOpts.width, this.#sceneOpts.height);
         // Render children

@@ -28,6 +28,11 @@ export class Vector2 {
         this.y += B.y;
     }
 
+    copyFrom(A: Vector2) {
+        this.x = A.x;
+        this.y = A.y;
+    }
+
     // Static methods
 
     // Creates a new Vector2 from a radian angle
