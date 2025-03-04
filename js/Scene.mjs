@@ -97,15 +97,31 @@ export class Scene {
             if (this.#trackedBody !== null)
                 this.untrack();
             // Move canvas
-            const dx = lastTouch.x - e.clientX;
-            const dy = e.clientY - lastTouch.y;
-            const offset = new Vector2(dx, dy);
+            const offset = new Vector2(lastTouch.x - e.clientX, e.clientY - lastTouch.y);
             offset.scale(this.#sceneOpts.mPerPx);
             this.#sceneOpts.center.add(offset);
             // Record coordinates
             lastTouch = new Vector2(e.clientX, e.clientY);
         });
         $("canvas").on("mouseleave mouseup", () => lastTouch = null);
+        // Intercept click events
+        $("canvas").on("click", e => {
+            if (e.shiftKey)
+                return; // Ignore dragging clicks
+            // Search all visible bodies
+            for (const body of this.#bodies) {
+                if (!body.isVisible())
+                    return; // Skip off-screen elements
+                // Check if click is intercepted by body
+                const visibleRadius = body.radius / this.#sceneOpts.mPerPx;
+                const { x, y } = body.getDrawnPos(this.#sceneOpts);
+                if (Math.hypot(x - e.clientX, y - e.clientY) <= visibleRadius) {
+                    // Track this object
+                    this.track(body);
+                    return;
+                }
+            }
+        });
     }
     #updateViewport() {
         [this.#sceneOpts.width, this.#sceneOpts.height] = adjustViewport(this.#canvas);

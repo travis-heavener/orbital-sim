@@ -45,24 +45,19 @@ export class Body {
     render(ctx, sceneOpts) {
         // Determine scaled radius
         const { mPerPx, width, height } = sceneOpts;
-        const x = (sceneOpts.center.x - this.pos.x) / mPerPx;
-        const y = (sceneOpts.center.y - this.pos.y) / mPerPx;
+        const { x, y } = this.getDrawnPos(sceneOpts);
         const radius = this.radius / mPerPx;
+        // Detect if the Body was drawn in frame
+        this.#isVisible = (x + radius > 0 && x - radius < width) && (y + radius > 0 && y - radius < height);
+        // Skip drawing if off screen
+        if (!this.#isVisible)
+            return;
         // Draw from center-origin
         ctx.beginPath();
-        ctx.arc(width / 2 - x, height / 2 + y, radius, 0, 2 * Math.PI);
+        ctx.arc(x, y, radius, 0, 2 * Math.PI);
         // Fill
         ctx.fillStyle = this.#color;
         ctx.fill();
-        // Detect if the Body was drawn in frame
-        if (this.name === "Earth")
-            if ((x + radius > 0 && x - radius < width) && (y + radius > 0 && y - radius < height)) {
-                this.#isVisible = true;
-                console.log(true);
-            }
-            else {
-                console.log(false);
-            }
     }
     // Clear forces cache
     clearForcesCache() {
@@ -73,5 +68,9 @@ export class Body {
     cacheForce(bodyID, force) {
         this.#forcesCache[bodyID] = force;
     }
+    getDrawnPos(sceneOpts) {
+        return new Vector2(sceneOpts.width / 2 - (sceneOpts.center.x - this.pos.x) / sceneOpts.mPerPx, sceneOpts.height / 2 + (sceneOpts.center.y - this.pos.y) / sceneOpts.mPerPx);
+    }
+    isVisible() { return this.#isVisible; }
 }
 ;
