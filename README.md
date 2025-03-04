@@ -5,6 +5,10 @@
 This is a small project I've been sitting on for years now, but I'm using it as an excuse to fine-tune my TypeScript skills.
 
 ## Controls
+~~Track body: `Left Click`~~ **WIP**
+
+Pause: `P`
+
 Dragging: `Shift + Left Click` or `Middle Click`
 
 Zoom +: `Up Arrow`

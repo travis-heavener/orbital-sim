@@ -70,6 +70,7 @@ export class Scene {
         // Pause game on lost focus
         let isPausedOnBlur = false;
         $(window).on("blur", () => {
+            if (!this.#isRunning) return;
             isPausedOnBlur = true;
             this.stop();
         });
@@ -87,11 +88,21 @@ export class Scene {
         });
         
         $(window).on("keydown", e => {
-            if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
-
-            e.preventDefault();
-            this.#sceneOpts.mPerPx *= e.key !== "ArrowUp" ? 1.25 : 0.8;
-            this.#sceneOpts.mPerPx = Math.max(DEFAULT_MPERPX, this.#sceneOpts.mPerPx);
+            switch (e.code) {
+                case "ArrowUp":
+                    e.preventDefault();
+                    this.#sceneOpts.mPerPx *= 1.25;
+                    this.#sceneOpts.mPerPx = Math.max(DEFAULT_MPERPX, this.#sceneOpts.mPerPx);
+                    break;
+                case "ArrowDown":
+                    e.preventDefault();
+                    this.#sceneOpts.mPerPx /= 1.25;
+                    this.#sceneOpts.mPerPx = Math.max(DEFAULT_MPERPX, this.#sceneOpts.mPerPx);
+                    break;
+                case "KeyP":
+                    this[ this.#isRunning ? "stop" : "start" ]();
+                    break;
+            }
         });
 
         // Drag events
@@ -127,9 +138,7 @@ export class Scene {
 
     #updateViewport() {
         [this.#sceneOpts.width, this.#sceneOpts.height] = adjustViewport(this.#canvas);
-
-        // Redraw
-        this.#draw();
+        this.#draw(); // Redraw
     }
 
     // Tick method
