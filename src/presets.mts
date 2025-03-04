@@ -7,9 +7,9 @@ export const solarSystem = (scene: Scene) => {
     const sun = new Body({
         "pos": new Vector2(0, 0),
         "mass": 1.9891e30,
-        "radius": 7e8 * 10,
+        "radius": 7e8 * 25,
         "color": "#d0ff00",
-        "name": "Sun (x10)"
+        "name": "Sun (x25)"
     });
 
     const mercury = new Body({
