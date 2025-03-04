@@ -3,16 +3,12 @@ import { Vector2 } from "./Vector2.mjs";
 
 // Adjust canvas size based on viewport
 export const adjustViewport = (canvas: HTMLCanvasElement): [number, number] => {
-    // Calculate canvas dimensions
-    const vw = window.innerWidth / 100;
-    const vh = window.innerHeight / 100;
-    const size = ~~Math.min(80 * vw, 80 * vh);
-
     // Update canvas dimensions
-    canvas.width = canvas.height = size;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
     $(canvas).css({"width": canvas.width, "height": canvas.height});
 
-    return [size, size];
+    return [canvas.width, canvas.height];
 }
 
 // Calculate gravitational force between two components

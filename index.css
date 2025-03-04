@@ -23,13 +23,10 @@ body {
 }
 
 canvas {
-    --canvas-size: min(80vw, 80vh);
-
     display: block;
     margin: 0 auto;
-    margin-top: 10vh;
-    width: var(--canvas-size);
-    height: var(--canvas-size);
+    width: 100vw;
+    height: 100vh;
 
     background-color: #090909;
 }
