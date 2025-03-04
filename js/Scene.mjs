@@ -47,7 +47,6 @@ export class Scene {
         const dt = (this.#lastTickTS ? (Date.now() - this.#lastTickTS) : this.#tickRate) / 1e3;
         const iter = 100;
         const dtScaled = dt * this.#timewarpScale / iter;
-        console.log(dt);
         for (let i = 0; i < iter; ++i) {
             // Track a tracked/focused body
             if (this.#trackedBody !== null)

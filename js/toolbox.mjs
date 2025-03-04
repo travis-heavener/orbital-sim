@@ -23,8 +23,7 @@ export const calcNewtonianGrav = (bodyA, bodyB) => {
     const force = Vector2.fromAngle(theta, G * m1m2 / distSquared); // Scale by force magnitude
     bodyA.cacheForce(bodyB.id, force);
     // Flip & cache for bodyB
-    force.flip();
-    bodyB.cacheForce(bodyA.id, force);
+    bodyB.cacheForce(bodyA.id, Vector2.flip(force));
 };
 // Create a v4 UUID (https://stackoverflow.com/a/2117523)
 export const uuidv4 = () => {

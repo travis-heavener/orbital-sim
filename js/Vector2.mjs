@@ -38,5 +38,9 @@ export class Vector2 {
     static scale(A, scalar) {
         return new Vector2(A.x * scalar, A.y * scalar);
     }
+    // Flips a vector
+    static flip(A) {
+        return new Vector2(-A.x, -A.y);
+    }
 }
 ;

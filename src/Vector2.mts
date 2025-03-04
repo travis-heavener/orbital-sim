@@ -46,4 +46,9 @@ export class Vector2 {
     static scale(A: Vector2, scalar: number): Vector2 {
         return new Vector2(A.x * scalar, A.y * scalar);
     }
+
+    // Flips a vector
+    static flip(A: Vector2): Vector2 {
+        return new Vector2(-A.x, -A.y);
+    }
 };

@@ -31,8 +31,7 @@ export const calcNewtonianGrav = (bodyA: Body, bodyB: Body) => {
     bodyA.cacheForce(bodyB.id, force);
 
     // Flip & cache for bodyB
-    force.flip();
-    bodyB.cacheForce(bodyA.id, force);
+    bodyB.cacheForce(bodyA.id, Vector2.flip(force));
 };
 
 // Create a v4 UUID (https://stackoverflow.com/a/2117523)
