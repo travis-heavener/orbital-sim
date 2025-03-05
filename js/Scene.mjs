@@ -192,6 +192,7 @@ export class Scene {
             this.#requestManualRedraw();
         });
         // Key events
+        let draggingBy = null;
         $(window).on("keydown", e => {
             switch (e.code) {
                 case "ArrowUp":
@@ -221,7 +222,17 @@ export class Scene {
                 case "KeyT":
                     this.#pauseOnLostFocus = !this.#pauseOnLostFocus;
                     break;
+                default:
+                    if (e.key === "Shift" && draggingBy === null) {
+                        e.preventDefault();
+                        this.#setCursor("draggable");
+                    }
+                    break;
             }
+        });
+        $(window).on("keyup", e => {
+            if (e.key === "Shift" && draggingBy !== "MMB")
+                this.#setCursor("default");
         });
         // Drag events
         let lastTouch = null;
@@ -231,6 +242,9 @@ export class Scene {
                 return;
             // Intercept coordinates
             lastTouch = new Vector2(e.clientX, e.clientY);
+            this.#setCursor("dragging"); // Update cursor
+            // Update dragging method
+            draggingBy = e.which === 1 ? "LMB" : "MMB";
         });
         $("canvas").on("mousemove", (e) => {
             if (lastTouch === null)
@@ -247,7 +261,11 @@ export class Scene {
             // Request redraw
             this.#requestManualRedraw();
         });
-        $("canvas").on("mouseleave mouseup", () => lastTouch = null);
+        $("canvas").on("mouseleave mouseup", () => {
+            lastTouch = null;
+            draggingBy = null;
+            this.#setCursor("default"); // Update cursor
+        });
         // Intercept click events
         $("canvas").on("click", e => {
             if (e.shiftKey)
@@ -273,6 +291,9 @@ export class Scene {
             if (closestHit.body !== null)
                 this.track(closestHit.body);
         });
+    }
+    #setCursor(cursor) {
+        this.#canvas.className = "canvas-" + cursor;
     }
 }
 ;

@@ -30,3 +30,7 @@ canvas {
 
     background-color: #090909;
 }
+
+.canvas-default { cursor: default; }
+.canvas-draggable { cursor: grab; }
+.canvas-dragging { cursor: grabbing; }

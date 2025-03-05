@@ -238,6 +238,7 @@ export class Scene {
         });
 
         // Key events
+        let draggingBy: "LMB" | "MMB" = null;
         $(window).on("keydown", e => {
             switch (e.code) {
                 case "ArrowUp":
@@ -267,7 +268,17 @@ export class Scene {
                 case "KeyT":
                     this.#pauseOnLostFocus = !this.#pauseOnLostFocus;
                     break;
+                default:
+                    if (e.key === "Shift" && draggingBy === null) {
+                        e.preventDefault();
+                        this.#setCursor("draggable");
+                    }
+                    break;
             }
+        });
+
+        $(window).on("keyup", e => {
+            if (e.key === "Shift" && draggingBy !== "MMB") this.#setCursor("default");
         });
 
         // Drag events
@@ -278,6 +289,10 @@ export class Scene {
 
             // Intercept coordinates
             lastTouch = new Vector2(e.clientX, e.clientY);
+            this.#setCursor("dragging"); // Update cursor
+
+            // Update dragging method
+            draggingBy = e.which === 1 ? "LMB" : "MMB";
         });
 
         $("canvas").on("mousemove", (e) => {
@@ -298,7 +313,11 @@ export class Scene {
             this.#requestManualRedraw();
         });
 
-        $("canvas").on("mouseleave mouseup", () => lastTouch = null);
+        $("canvas").on("mouseleave mouseup", () => {
+            lastTouch = null;
+            draggingBy = null;
+            this.#setCursor("default"); // Update cursor
+        });
 
         // Intercept click events
         $("canvas").on("click", e => {
@@ -328,5 +347,9 @@ export class Scene {
             if (closestHit.body !== null)
                 this.track(closestHit.body);
         });
+    }
+
+    #setCursor(cursor: "dragging" | "draggable" | "default") {
+        this.#canvas.className = "canvas-" + cursor;
     }
 };
