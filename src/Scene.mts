@@ -3,6 +3,7 @@ import { adjustViewport } from "./toolbox.mjs";
 import { Vector2 } from "./Vector2.mjs";
 
 const DEFAULT_MPERPX = 3e5;
+const DEBUG_INTERVAL_MS = 500;
 
 export type SceneOpts = {
     center: Vector2, // Center position, in 
@@ -21,6 +22,9 @@ export class Scene {
     #pauseOnLostFocus = true;
 
     #showDebugStats = false;
+    #lastDebugTS = 0;
+    #_recordTPS = false; // When true, logs the current TPS & unsets itself
+    #_recordFPS = false; // When true, logs the current FPS & unsets itself
     #lastTickTS: number = null; // Last sim-tick timestamp
     #lastDrawTS: number = null; // Last display render timestamp
     #currentTPS: number = null; // Current ticks-per-second
@@ -114,9 +118,14 @@ export class Scene {
         }
 
         // Update timestamp
-        const elapsedSec = (Date.now() - this.#lastTickTS) / 1e3;
-        this.#lastTickTS = Date.now();
-        this.#currentTPS = 1 / elapsedSec;
+        const now = Date.now();
+        const elapsedSec = (now - this.#lastTickTS) / 1e3;
+        this.#lastTickTS = now;
+
+        if (this.#_recordTPS) {
+            this.#currentTPS = 1 / elapsedSec;
+            this.#_recordTPS = false;
+        }
 
         // Update interval
         if (this.#isRunning) {
@@ -128,8 +137,10 @@ export class Scene {
     // Draw method
     #draw() {
         // Track a tracked/focused body
-        if (this.#trackedBody !== null)
-            this.#sceneOpts.center.copyFrom(this.#trackedBody.pos);
+        if (this.#trackedBody !== null) {
+            this.#sceneOpts.center.x = this.#trackedBody.pos.x;
+            this.#sceneOpts.center.y = this.#trackedBody.pos.y;
+        }
 
         // Clear canvas
         this.#ctx.clearRect(0, 0, this.#sceneOpts.width, this.#sceneOpts.height);
@@ -154,12 +165,23 @@ export class Scene {
 
             this.#ctx.fillText(`FPS: ${fps}`, height * 0.02, height * 0.03);
             this.#ctx.fillText(`TPS: ${tps}`, height * 0.02, height * 0.03 + fontSize * 1.25);
+
+            // Update debug TS
+            if (Date.now() - this.#lastDebugTS > DEBUG_INTERVAL_MS) {
+                this.#_recordFPS = this.#_recordTPS = true;
+                this.#lastDebugTS = Date.now();
+            }
         }
 
         // Update timestamp
-        const elapsedSec = (Date.now() - this.#lastDrawTS) / 1e3;
-        this.#lastDrawTS = Date.now();
-        this.#currentFPS = 1 / elapsedSec;
+        const now = Date.now();
+        const elapsedSec = (now - this.#lastDrawTS) / 1e3;
+        this.#lastDrawTS = now;
+
+        if (this.#_recordFPS) {
+            this.#currentFPS = 1 / elapsedSec;
+            this.#_recordFPS = false;
+        }
 
         // Update interval
         if (this.#isRunning) {
