@@ -19,6 +19,7 @@ export class Scene {
     // Simulation settings
     #timewarpScale = 1; // Timewarp scale
     #pauseOnLostFocus = false;
+    #showDebugStats = false;
 
     #tickRate: number; // In MS, time between simulation ticks
     #drawRate: number; // In MS, time between render calls
@@ -130,6 +131,11 @@ export class Scene {
         // Render children
         this.#bodies.forEach(b => b.render(this.#ctx, this.#sceneOpts));
 
+        // Show debug stats
+        if (this.#showDebugStats) {
+            // TODO
+        }
+
         // Update interval
         if (this.#isRunning)
             this.#drawTimeout = setTimeout(() => this.#draw(), this.#drawRate);
@@ -192,19 +198,18 @@ export class Scene {
             // Request redraw
             this.#requestManualRedraw();
         });
-        
+
+        // Key events
         $(window).on("keydown", e => {
             switch (e.code) {
                 case "ArrowUp":
                     e.preventDefault();
-                    this.#sceneOpts.mPerPx /= 1.25;
-                    this.#sceneOpts.mPerPx = Math.max(DEFAULT_MPERPX, this.#sceneOpts.mPerPx);
+                    this.#sceneOpts.mPerPx = Math.max(DEFAULT_MPERPX, this.#sceneOpts.mPerPx / 1.25);
                     this.#requestManualRedraw();
                     break;
                 case "ArrowDown":
                     e.preventDefault();
-                    this.#sceneOpts.mPerPx *= 1.25;
-                    this.#sceneOpts.mPerPx = Math.max(DEFAULT_MPERPX, this.#sceneOpts.mPerPx);
+                    this.#sceneOpts.mPerPx = Math.min(1e10, this.#sceneOpts.mPerPx * 1.25);
                     this.#requestManualRedraw();
                     break;
                 case "ArrowLeft":
@@ -214,6 +219,9 @@ export class Scene {
                 case "ArrowRight":
                     e.preventDefault();
                     this.#timewarpScale = Math.min(1e7, this.#timewarpScale * 2);
+                    break;
+                case "KeyD":
+                    this.#showDebugStats = !this.#showDebugStats;
                     break;
                 case "KeyP":
                     this[ this.#isRunning ? "stop" : "start" ]();
