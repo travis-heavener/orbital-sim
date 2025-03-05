@@ -193,7 +193,7 @@ export class Scene {
 
             // Update viewport scaling
             this.#sceneOpts.mPerPx *= 1 + viewportDelta;
-            this.#sceneOpts.mPerPx = Math.max(DEFAULT_MPERPX, this.#sceneOpts.mPerPx);
+            this.#sceneOpts.mPerPx = Math.min(1e10, Math.max(DEFAULT_MPERPX, this.#sceneOpts.mPerPx));
 
             // Request redraw
             this.#requestManualRedraw();
