@@ -21,6 +21,8 @@ Timewarp -: `Left Arrow`
 
 Toggle pause on lost focus: `T`
 
+Toggle debug stats: `D`
+
 ## Setup
 To install Node packages:
 
