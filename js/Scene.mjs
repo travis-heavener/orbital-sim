@@ -166,6 +166,14 @@ export class Scene {
                     this.#sceneOpts.mPerPx = Math.max(DEFAULT_MPERPX, this.#sceneOpts.mPerPx);
                     this.#requestManualRedraw();
                     break;
+                case "ArrowLeft":
+                    e.preventDefault();
+                    this.#timewarpScale = Math.max(1, this.#timewarpScale / 2);
+                    break;
+                case "ArrowRight":
+                    e.preventDefault();
+                    this.#timewarpScale = Math.min(1e7, this.#timewarpScale * 2);
+                    break;
                 case "KeyP":
                     this[this.#isRunning ? "stop" : "start"]();
                     break;

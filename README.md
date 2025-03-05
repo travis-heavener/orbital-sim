@@ -15,9 +15,9 @@ Zoom +: `Up Arrow`
 
 Zoom -: `Down Arrow`
 
-~~Timewarp +: `Right Arrow`~~ **WIP**
+Timewarp +: `Right Arrow`
 
-~~Timewarp -: `Left Arrow`~~ **WIP**
+Timewarp -: `Left Arrow`
 
 ~~Toggle pause on lost focus: `T`~~ **WIP**
 
