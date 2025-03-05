@@ -18,7 +18,7 @@ export class Scene {
 
     // Simulation settings
     #timewarpScale = 1; // Timewarp scale
-    #pauseOnLostFocus = false;
+    #pauseOnLostFocus = true;
 
     #showDebugStats = false;
     #lastTickTS: number = null; // Last sim-tick timestamp
@@ -304,19 +304,29 @@ export class Scene {
         $("canvas").on("click", e => {
             if (e.shiftKey) return; // Ignore dragging clicks
 
-            // Search all visible bodies
-            for (const body of this.#bodies) {
-                if (!body.isVisible()) return; // Skip off-screen elements
+            // Add buffer area around smaller bodies
+            const bufferSize = (this.#sceneOpts.width + this.#sceneOpts.height) / 180;
 
-                // Check if click is intercepted by body
+            // Search all visible bodies
+            const closestHit: {body: Body, dist: number} = {body: null, dist: Infinity};
+            for (const body of this.#bodies) {
+                if (!body.isVisible()) continue; // Skip off-screen elements
+
+                // Calculate overlap
                 const visibleRadius = body.radius / this.#sceneOpts.mPerPx;
                 const { x, y } = body.getDrawnPos(this.#sceneOpts);
-                if (Math.hypot(x - e.clientX, y - e.clientY) <= visibleRadius) {
-                    // Track this object
-                    this.track(body);
-                    return;
+                const dist = Math.hypot(x - e.clientX, y - e.clientY);
+
+                // Check if click is intercepted by body
+                if (dist <= visibleRadius + bufferSize && closestHit.dist > dist) {
+                    closestHit.body = body;
+                    closestHit.dist = dist;
                 }
             }
+
+            // Track closest hit
+            if (closestHit.body !== null)
+                this.track(closestHit.body);
         });
     }
 };
