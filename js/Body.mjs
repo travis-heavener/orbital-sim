@@ -31,18 +31,18 @@ export class Body {
     tick(bodies, dt) {
         // Calculate force from all other bodies
         const F_net = new Vector2();
-        for (const body of bodies) {
-            if (body.id === this.id)
+        for (let i = 0; i < bodies.length; ++i) {
+            if (bodies[i].id === this.id)
                 continue; // Skip this
-            if (!Object.hasOwn(this.#forcesCache, body.id))
-                calcNewtonianGrav(this, body);
-            F_net.add(this.#forcesCache[body.id]);
+            if (!this.#forcesCache[bodies[i].id])
+                calcNewtonianGrav(this, bodies[i]);
+            F_net.add(this.#forcesCache[bodies[i].id]);
         }
         // Update telemetry
-        F_net.scale(1 / this.mass);
-        this.accel = F_net;
-        this.velocity.add(Vector2.scale(this.accel, dt));
-        this.pos.add(Vector2.scale(this.velocity, dt));
+        F_net.div(this.mass);
+        this.accel.assign(F_net);
+        this.velocity.add(this.accel.x * dt, this.accel.y * dt);
+        this.pos.add(this.velocity.x * dt, this.velocity.y * dt);
     }
     // Render method
     render(ctx, sceneOpts) {
@@ -64,8 +64,7 @@ export class Body {
     }
     // Clear physics caches
     clearCache() {
-        Object.getOwnPropertyNames(this.#forcesCache)
-            .forEach(pair => delete this.#forcesCache[pair]);
+        this.#forcesCache = {};
     }
     // Cache a force from a Body to prevent duplicate calculations
     cacheForce(bodyID, force) {
@@ -89,10 +88,11 @@ export class Body {
         const bodiesToTraverse = [...bodiesArr];
         while (bodiesToTraverse.length) {
             const body = bodiesToTraverse.shift();
-            for (const auxBody of body.getCollidedBodies()) {
-                if (!bodies.has(auxBody)) {
-                    bodies.add(auxBody);
-                    bodiesToTraverse.push(auxBody);
+            const collidedBodies = body.getCollidedBodies();
+            for (let i = 0; i < collidedBodies.length; ++i) {
+                if (!bodies.has(collidedBodies[i])) {
+                    bodies.add(collidedBodies[i]);
+                    bodiesToTraverse.push(collidedBodies[i]);
                 }
             }
         }
@@ -103,7 +103,8 @@ export class Body {
         const vf = new Vector2();
         const af = new Vector2();
         const color = [0, 0, 0];
-        for (const body of bodies) {
+        for (let i = 0; i < bodies.size; ++i) {
+            const body = bodies[i];
             mf += body.mass;
             rfCubed += body.radius ** 3;
             pf.add(new Vector2(body.pos).scale(body.mass));
@@ -123,9 +124,9 @@ export class Body {
         const formatComp = (c) => (~~c).toString(16).padStart(2, "0");
         const colorHex = `#${formatComp(color[0])}${formatComp(color[1])}${formatComp(color[2])}`;
         // Divide by total mass
-        pf.scale(1 / mf);
-        vf.scale(1 / mf);
-        af.scale(1 / mf);
+        pf.div(mf);
+        vf.div(mf);
+        af.div(mf);
         // Create new Body
         return new Body({
             "pos": pf,

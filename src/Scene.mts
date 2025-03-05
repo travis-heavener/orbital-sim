@@ -81,41 +81,39 @@ export class Scene {
     #tick() {
         // Determine elapsed seconds
         const dt = (this.#lastTickTS ? (Date.now() - this.#lastTickTS) : this.#tickRate) / 1e3;
-        const iter = 100;
-        const dtScaled = dt * this.#timewarpScale / iter;
+        const dtScaled = dt * this.#timewarpScale;
 
-        for (let i = 0; i < iter; ++i) {
-            // Tick each body
-            this.#bodies.forEach(b => b.tick(this.#bodies, dtScaled));
+        // Tick each body
+        for (let i = 0; i < this.#bodies.length; ++i)
+            this.#bodies[i].tick(this.#bodies, dtScaled);
 
-            // Check for collisions
-            const newBodies = [];
-            for (const body of this.#bodies) {
-                // Merge bodies if collided
-                const collidedBodies = body.getCollidedBodies();
-                if (!body.isDestroyed() && collidedBodies.length)
-                    newBodies.push( Body.merge(body, ...collidedBodies) );
-            }
-
-            // Free destroyed bodies (O(1) swap removal)
-            for (let j = 0; j < this.#bodies.length; ++j) {
-                const body = this.#bodies[j];
-                if (body.isDestroyed()) {
-                    this.#bodies[j] = this.#bodies[this.#bodies.length-1];
-                    this.#bodies.pop();
-                    --j;
-
-                    // Untrack if destroyed
-                    if (this.#trackedBody === body) this.untrack();
-                }
-            }
-
-            // Insert new bodies
-            this.#bodies.push(...newBodies);
-
-            // Clear each body's ForcesCache
-            this.#bodies.forEach(b => b.clearCache());
+        // Check for collisions
+        const newBodies = [];
+        for (let i = 0; i < this.#bodies.length; ++i) {
+            // Merge bodies if collided
+            const collidedBodies = this.#bodies[i].getCollidedBodies();
+            if (collidedBodies.length && !this.#bodies[i].isDestroyed())
+                newBodies.push( Body.merge(this.#bodies[i], ...collidedBodies) );
         }
+
+        // Free destroyed bodies (O(1) swap removal)
+        for (let i = 0; i < this.#bodies.length; ++i) {
+            const body = this.#bodies[i];
+            if (body.isDestroyed()) {
+                this.#bodies[i--] = this.#bodies[this.#bodies.length-1];
+                this.#bodies.pop();
+
+                // Untrack if destroyed
+                if (this.#trackedBody === body) this.untrack();
+            }
+        }
+
+        // Insert new bodies
+        this.#bodies.push(...newBodies);
+
+        // Clear each body's ForcesCache
+        for (let i = 0; i < this.#bodies.length; ++i)
+            this.#bodies[i].clearCache();
 
         // Update timestamp
         const now = Date.now();
@@ -128,27 +126,25 @@ export class Scene {
         }
 
         // Update interval
-        if (this.#isRunning) {
-            const waitMS = Math.max(0, this.#tickRate - elapsedSec);
-            this.#tickTimeout = setTimeout(() => this.#tick(), waitMS);
-        }
+        if (this.#isRunning)
+            this.#tickTimeout = setTimeout(() => this.#tick(), Math.max(0, this.#tickRate - elapsedSec));
     }
 
     // Draw method
     #draw() {
         // Track a tracked/focused body
-        if (this.#trackedBody !== null) {
-            this.#sceneOpts.center.x = this.#trackedBody.pos.x;
-            this.#sceneOpts.center.y = this.#trackedBody.pos.y;
-        }
+        if (this.#trackedBody !== null)
+            this.#sceneOpts.center.assign(this.#trackedBody.pos);
 
         // Clear canvas
         this.#ctx.clearRect(0, 0, this.#sceneOpts.width, this.#sceneOpts.height);
 
         // Render children
-        this.#bodies.forEach(b => b.render(this.#ctx, this.#sceneOpts));
+        for (let i = 0; i < this.#bodies.length; ++i)
+            this.#bodies[i].render(this.#ctx, this.#sceneOpts);
 
         // Show debug stats
+        const now = Date.now();
         if (this.#showDebugStats) {
             // Calculate TPS/FPS
             let fps = "-", tps = "-";
@@ -167,14 +163,13 @@ export class Scene {
             this.#ctx.fillText(`TPS: ${tps}`, height * 0.02, height * 0.03 + fontSize * 1.25);
 
             // Update debug TS
-            if (Date.now() - this.#lastDebugTS > DEBUG_INTERVAL_MS) {
+            if (now - this.#lastDebugTS > DEBUG_INTERVAL_MS) {
                 this.#_recordFPS = this.#_recordTPS = true;
-                this.#lastDebugTS = Date.now();
+                this.#lastDebugTS = now;
             }
         }
 
         // Update timestamp
-        const now = Date.now();
         const elapsedSec = (now - this.#lastDrawTS) / 1e3;
         this.#lastDrawTS = now;
 
@@ -184,22 +179,21 @@ export class Scene {
         }
 
         // Update interval
-        if (this.#isRunning) {
-            const waitMS = Math.max(0, this.#drawRate - elapsedSec);
-            this.#drawTimeout = setTimeout(() => this.#draw(), waitMS);
-        }
+        if (this.#isRunning)
+            this.#drawTimeout = setTimeout(() => this.#draw(), Math.max(0, this.#drawRate - elapsedSec));
     }
 
     // Used to manually redraw the canvas in case the simulation is stopped
     #requestManualRedraw() {
-        if (!this.#isRunning && Date.now() - this.#lastManualRedraw >= this.#drawRate) {
+        const now = Date.now();
+        if (!this.#isRunning && now - this.#lastManualRedraw >= this.#drawRate) {
             // Correct drawTS for debug stats
             if (this.#lastDrawTS === null)
-                this.#lastDrawTS = Date.now() - this.#drawRate;
+                this.#lastDrawTS = now - this.#drawRate;
 
             // Redraw
             this.#draw();
-            this.#lastManualRedraw = Date.now();
+            this.#lastManualRedraw = now;
         }
     }
 
@@ -349,10 +343,11 @@ export class Scene {
 
             // Search all visible bodies
             const closestHit: {body: Body, dist: number} = {body: null, dist: Infinity};
-            for (const body of this.#bodies) {
-                if (!body.isVisible()) continue; // Skip off-screen elements
-
+            for (let i = 0; i < this.#bodies.length; ++i) {
+                if (!this.#bodies[i].isVisible()) continue; // Skip off-screen elements
+                
                 // Calculate overlap
+                const body = this.#bodies[i];
                 const visibleRadius = body.radius / this.#sceneOpts.mPerPx;
                 const { x, y } = body.getDrawnPos(this.#sceneOpts);
                 const dist = Math.hypot(x - e.clientX, y - e.clientY);

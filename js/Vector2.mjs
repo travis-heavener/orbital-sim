@@ -22,25 +22,28 @@ export class Vector2 {
     }
     normalize() {
         const hypot = this.getMagnitude();
-        this.x /= hypot;
-        this.y /= hypot;
+        this.x /= hypot, this.y /= hypot;
     }
     flip() {
-        this.x *= -1;
-        this.y *= -1;
+        this.x *= -1, this.y *= -1;
     }
     scale(scale) {
-        this.x *= scale;
-        this.y *= scale;
+        this.x *= scale, this.y *= scale;
         return this;
     }
-    add(B) {
-        this.x += B.x;
-        this.y += B.y;
+    div(scale) {
+        this.x /= scale, this.y /= scale;
+        return this;
     }
-    copyFrom(A) {
-        this.x = A.x;
-        this.y = A.y;
+    add(x, y) {
+        if (x.constructor === Vector2) {
+            this.x += x.x, this.y += x.y;
+            return;
+        }
+        this.x += x, this.y += y;
+    }
+    assign(vec2) {
+        this.x = vec2.x, this.y = vec2.y;
     }
     // Static methods
     // Creates a new Vector2 from a radian angle

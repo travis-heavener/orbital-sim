@@ -12,13 +12,13 @@ export const adjustViewport = (canvas: HTMLCanvasElement): [number, number] => {
 }
 
 // Calculate gravitational force between two components
+const G = 6.6743e-11; // Gravitational constant
 export const calcNewtonianGrav = (bodyA: Body, bodyB: Body) => {
     // Calculate the gravitational force between both bodies
-    const G = 6.6743e-11; // Gravitational constnat
     const m1m2 = bodyA.mass * bodyB.mass;
-
     const dx = bodyB.pos.x - bodyA.pos.x;
     const dy = bodyB.pos.y - bodyA.pos.y;
+
     const distSquared = dx ** 2 + dy ** 2;
     const theta = Math.atan2(dy, dx);
 

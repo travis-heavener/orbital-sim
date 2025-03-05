@@ -27,29 +27,34 @@ export class Vector2 {
 
     normalize() {
         const hypot = this.getMagnitude();
-        this.x /= hypot;
-        this.y /= hypot;
+        this.x /= hypot, this.y /= hypot;
     }
 
     flip() {
-        this.x *= -1;
-        this.y *= -1;
+        this.x *= -1, this.y *= -1;
     }
 
     scale(scale: number): Vector2 {
-        this.x *= scale;
-        this.y *= scale;
+        this.x *= scale, this.y *= scale;
         return this;
     }
 
-    add(B: Vector2) {
-        this.x += B.x;
-        this.y += B.y;
+    div(scale: number): Vector2 {
+        this.x /= scale, this.y /= scale;
+        return this;
     }
 
-    copyFrom(A: Vector2) {
-        this.x = A.x;
-        this.y = A.y;
+    add(x: Vector2 | number, y?: number) {
+        if (x.constructor === Vector2) {
+            this.x += x.x, this.y += x.y;
+            return;
+        }
+
+        this.x += x as number, this.y += y;
+    }
+
+    assign(vec2: Vector2) {
+        this.x = vec2.x, this.y = vec2.y;
     }
 
     // Static methods
