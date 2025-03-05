@@ -159,8 +159,7 @@ export class Scene {
     stop() {
         clearTimeout(this.#tickTimeout);
         clearTimeout(this.#drawTimeout);
-        this.#lastTickTS = null;
-        this.#lastDrawTS = null;
+        this.#lastTickTS = this.#lastDrawTS = null;
         this.#isRunning = false;
     }
     #bindEvents() {
