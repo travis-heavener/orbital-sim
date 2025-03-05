@@ -19,7 +19,7 @@ Timewarp +: `Right Arrow`
 
 Timewarp -: `Left Arrow`
 
-~~Toggle pause on lost focus: `T`~~ **WIP**
+Toggle pause on lost focus: `T`
 
 ## Setup
 To install Node packages:

@@ -18,6 +18,7 @@ export class Scene {
 
     // Simulation settings
     #timewarpScale = 1; // Timewarp scale
+    #pauseOnLostFocus = false;
 
     #tickRate: number; // In MS, time between simulation ticks
     #drawRate: number; // In MS, time between render calls
@@ -169,12 +170,12 @@ export class Scene {
         // Pause game on lost focus
         let isPausedOnBlur = false;
         $(window).on("blur", () => {
-            if (!this.#isRunning) return;
+            if (!this.#isRunning || !this.#pauseOnLostFocus) return;
             isPausedOnBlur = true;
             this.stop();
         });
         $(window).on("focus", () => {
-            if (!isPausedOnBlur) return;
+            if (!isPausedOnBlur || !this.#pauseOnLostFocus) return;
             isPausedOnBlur = false;
             this.start();
         });
@@ -216,6 +217,9 @@ export class Scene {
                     break;
                 case "KeyP":
                     this[ this.#isRunning ? "stop" : "start" ]();
+                    break;
+                case "KeyT":
+                    this.#pauseOnLostFocus = !this.#pauseOnLostFocus;
                     break;
             }
         });
