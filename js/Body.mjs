@@ -1,5 +1,6 @@
-import { calcNewtonianGrav, uuidv4 } from "./toolbox.mjs";
+import { uuidv4 } from "./toolbox.mjs";
 import { Vector2 } from "./Vector2.mjs";
+const G = 6.6743e-11; // Gravitational constant
 export class Body {
     id; // UUID for each body
     pos; // Cartesian coordinates, in meters
@@ -13,7 +14,6 @@ export class Body {
     #isVisible = false;
     #isDestroyed = false; // Freed on next tick when true
     // Cached data between other bodies
-    #forcesCache;
     #collidedBodies;
     constructor(opts) {
         this.id = uuidv4();
@@ -24,25 +24,35 @@ export class Body {
         this.radius = opts.radius;
         this.name = opts?.name ?? "";
         this.#color = opts?.color ?? "#d01dd9";
-        this.#forcesCache = {};
         this.#collidedBodies = [];
     }
     // Tick method
     tick(bodies, dt) {
         // Calculate force from all other bodies
-        const F_net = new Vector2();
+        this.accel.x = this.accel.y = 0;
         for (let i = 0; i < bodies.length; ++i) {
             if (bodies[i].id === this.id)
                 continue; // Skip this
-            if (!this.#forcesCache[bodies[i].id])
-                calcNewtonianGrav(this, bodies[i]);
-            F_net.add(this.#forcesCache[bodies[i].id]);
+            const body = bodies[i];
+            // Calculate the gravitational force between both bodies
+            const dx = body.pos.x - this.pos.x;
+            const dy = body.pos.y - this.pos.y;
+            const distSquared = dx * dx + dy * dy;
+            const theta = Math.atan2(dy, dx);
+            // Check for collision
+            if (Math.sqrt(distSquared) < this.radius + body.radius) {
+                this.#collidedBodies.push(body);
+                body.#collidedBodies.push(this);
+            }
+            const force = Vector2.fromAngle(theta, G * this.mass * body.mass / distSquared);
+            this.accel.x += force.x;
+            this.accel.y += force.y;
         }
         // Update telemetry
-        F_net.div(this.mass);
-        this.accel.assign(F_net);
-        this.velocity.add(this.accel.x * dt, this.accel.y * dt);
-        this.pos.add(this.velocity.x * dt, this.velocity.y * dt);
+        this.velocity.x += this.accel.x * dt / this.mass;
+        this.velocity.y += this.accel.y * dt / this.mass;
+        this.pos.x += this.velocity.x * dt;
+        this.pos.y += this.velocity.y * dt;
     }
     // Render method
     render(ctx, sceneOpts) {
@@ -62,16 +72,6 @@ export class Body {
         ctx.fillStyle = this.#color;
         ctx.fill();
     }
-    // Clear physics caches
-    clearCache() {
-        this.#forcesCache = {};
-    }
-    // Cache a force from a Body to prevent duplicate calculations
-    cacheForce(bodyID, force) {
-        this.#forcesCache[bodyID] = force;
-    }
-    // Cache collision data between bodies
-    cacheCollision(body) { this.#collidedBodies.push(body); }
     // Calculate the position of the object on the canvas after scaling
     getDrawnPos(sceneOpts) {
         return new Vector2(sceneOpts.width / 2 - (sceneOpts.center.x - this.pos.x) / sceneOpts.mPerPx, sceneOpts.height / 2 + (sceneOpts.center.y - this.pos.y) / sceneOpts.mPerPx);
@@ -106,9 +106,15 @@ export class Body {
         for (const body of bodies) {
             mf += body.mass;
             rfCubed += body.radius ** 3;
-            pf.add(new Vector2(body.pos).scale(body.mass));
-            vf.add(new Vector2(body.velocity).scale(body.mass));
-            af.add(new Vector2(body.accel).scale(body.mass));
+            // Calculate position
+            pf.x += body.pos.x * body.mass;
+            pf.y += body.pos.y * body.mass;
+            // Calculate velocity
+            vf.x += body.velocity.x * body.mass;
+            vf.y += body.velocity.y * body.mass;
+            // Calculate accel
+            af.x += body.accel.x * body.mass;
+            af.y += body.accel.y * body.mass;
             // Average colors
             color[0] += parseInt(body.#color.substring(1, 3), 16);
             color[1] += parseInt(body.#color.substring(3, 5), 16);

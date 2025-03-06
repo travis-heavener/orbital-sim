@@ -1,4 +1,3 @@
-import { Vector2 } from "./Vector2.mjs";
 // Adjust canvas size based on viewport
 export const adjustViewport = (canvas) => {
     // Update canvas dimensions
@@ -6,26 +5,6 @@ export const adjustViewport = (canvas) => {
     canvas.height = window.innerHeight;
     $(canvas).css({ "width": canvas.width, "height": canvas.height });
     return [canvas.width, canvas.height];
-};
-// Calculate gravitational force between two components
-const G = 6.6743e-11; // Gravitational constant
-export const calcNewtonianGrav = (bodyA, bodyB) => {
-    // Calculate the gravitational force between both bodies
-    const m1m2 = bodyA.mass * bodyB.mass;
-    const dx = bodyB.pos.x - bodyA.pos.x;
-    const dy = bodyB.pos.y - bodyA.pos.y;
-    const distSquared = dx ** 2 + dy ** 2;
-    const theta = Math.atan2(dy, dx);
-    // Cache for bodyA
-    const force = Vector2.fromAngle(theta, G * m1m2 / distSquared); // Scale by force magnitude
-    bodyA.cacheForce(bodyB.id, force);
-    // Flip & cache for bodyB
-    bodyB.cacheForce(bodyA.id, Vector2.flip(force));
-    // Check for collision
-    if (Math.sqrt(distSquared) < bodyA.radius + bodyB.radius) {
-        bodyA.cacheCollision(bodyB);
-        bodyB.cacheCollision(bodyA);
-    }
 };
 // Create a v4 UUID (https://stackoverflow.com/a/2117523)
 export const uuidv4 = () => {

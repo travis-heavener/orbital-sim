@@ -47,8 +47,9 @@ export class Scene {
     // Tick method
     #tick(dt) {
         // Tick each body
+        const dtScaled = dt * this.#timewarpScale;
         for (let i = 0; i < this.#bodies.length; ++i)
-            this.#bodies[i].tick(this.#bodies, dt * this.#timewarpScale);
+            this.#bodies[i].tick(this.#bodies, dtScaled);
         // Check for collisions
         const newBodies = [];
         for (let i = 0; i < this.#bodies.length; ++i) {
@@ -70,9 +71,6 @@ export class Scene {
         }
         // Insert new bodies
         this.#bodies.push(...newBodies);
-        // Clear each body's ForcesCache
-        for (let i = 0; i < this.#bodies.length; ++i)
-            this.#bodies[i].clearCache();
     }
     // Draw method
     #draw(frameStart) {
@@ -80,8 +78,10 @@ export class Scene {
         if (this.#lastFrameTS !== null)
             this.#tick((frameStart - this.#lastFrameTS) / 1e3);
         // Track a tracked/focused body
-        if (this.#trackedBody !== null)
-            this.#sceneOpts.center.assign(this.#trackedBody.pos);
+        if (this.#trackedBody !== null) {
+            this.#sceneOpts.center.x = this.#trackedBody.pos.x;
+            this.#sceneOpts.center.y = this.#trackedBody.pos.y;
+        }
         // Clear canvas
         this.#ctx.clearRect(0, 0, this.#sceneOpts.width, this.#sceneOpts.height);
         // Render children
@@ -224,11 +224,10 @@ export class Scene {
             if (this.#trackedBody !== null)
                 this.untrack();
             // Move canvas
-            const offset = new Vector2(lastTouch.x - e.clientX, e.clientY - lastTouch.y);
-            offset.scale(this.#sceneOpts.mPerPx);
-            this.#sceneOpts.center.add(offset);
+            this.#sceneOpts.center.x += (lastTouch.x - e.clientX) * this.#sceneOpts.mPerPx;
+            this.#sceneOpts.center.y += (e.clientY - lastTouch.y) * this.#sceneOpts.mPerPx;
             // Record coordinates
-            lastTouch = new Vector2(e.clientX, e.clientY);
+            lastTouch.x = e.clientX, lastTouch.y = e.clientY;
             // Request redraw
             this.#requestManualRedraw();
         });

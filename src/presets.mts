@@ -55,7 +55,7 @@ export const solarSystem = (scene: Scene) => {
     scene.add(earth);
     scene.add(mars);
 
-    for (let i = 0; i < 75; ++i) {
+    for (let i = 0; i < 850; ++i) {
         scene.add(new Body({
             "pos": new Vector2(2.28e11 + (i+2)*1e12, 0),
             "velocity": new Vector2(0, 24_080),

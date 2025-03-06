@@ -17,16 +17,6 @@ export class Vector2 {
         this.x = x;
         this.y = y;
     }
-    getMagnitude() {
-        return Math.hypot(this.x, this.y);
-    }
-    normalize() {
-        const hypot = this.getMagnitude();
-        this.x /= hypot, this.y /= hypot;
-    }
-    flip() {
-        this.x *= -1, this.y *= -1;
-    }
     scale(scale) {
         this.x *= scale, this.y *= scale;
         return this;
@@ -42,9 +32,6 @@ export class Vector2 {
         }
         this.x += x, this.y += y;
     }
-    assign(vec2) {
-        this.x = vec2.x, this.y = vec2.y;
-    }
     // Static methods
     // Creates a new Vector2 from a radian angle
     static fromAngle(theta, magnitude) {
@@ -52,18 +39,6 @@ export class Vector2 {
         if (magnitude)
             vec2.scale(magnitude);
         return vec2;
-    }
-    // Adds two vectors and returns the sum
-    static add(A, B) {
-        return new Vector2(A.x + B.x, A.y + B.y);
-    }
-    // Scales a vector and returns the new Vector2
-    static scale(A, scalar) {
-        return new Vector2(A.x * scalar, A.y * scalar);
-    }
-    // Flips a vector
-    static flip(A) {
-        return new Vector2(-A.x, -A.y);
     }
 }
 ;
