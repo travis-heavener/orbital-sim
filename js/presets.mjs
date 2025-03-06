@@ -1,4 +1,5 @@
 import { Body } from "./Body.mjs";
+import { TIMEWARPS } from "./Scene.mjs";
 import { Vector2 } from "./Vector2.mjs";
 export const solarSystem = (scene) => {
     // Create bodies
@@ -96,7 +97,7 @@ export const solarSystem = (scene) => {
     scene.add(sun, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune, pluto);
     // Timewarp
     scene.setZoom(6e3);
-    scene.setTimewarp(2e6);
+    scene.setTimewarpIndex(TIMEWARPS.TIMEWARP_1E6X);
     // Track Earth
     scene.track(sun);
 };
@@ -121,7 +122,7 @@ export const earthMoon = (scene) => {
     scene.add(bodyB);
     // Timewarp
     scene.setZoom(4.5);
-    scene.setTimewarp(2e5);
+    scene.setTimewarpIndex(TIMEWARPS.TIMEWARP_1E5X);
     // Track Earth
     scene.track(bodyA);
 };
@@ -145,7 +146,7 @@ export const twoBodyProblem = (scene) => {
     scene.add(bodyA);
     scene.add(bodyB);
     // Timewarp
-    scene.setTimewarp(5e4);
+    scene.setTimewarpIndex(TIMEWARPS.TIMEWARP_1E4X);
 };
 export const threeDoomedBodies = (scene) => {
     const bodyA = new Body({
@@ -173,5 +174,5 @@ export const threeDoomedBodies = (scene) => {
     });
     scene.add(bodyA, bodyB, bodyC);
     // Timewarp
-    scene.setTimewarp(1e4);
+    scene.setTimewarpIndex(TIMEWARPS.TIMEWARP_500X);
 };

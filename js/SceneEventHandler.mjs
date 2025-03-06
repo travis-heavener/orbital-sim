@@ -1,3 +1,4 @@
+import { MAX_ZOOM } from "./Scene.mjs";
 import { notifyUser } from "./toolbox.mjs";
 import { Vector2 } from "./Vector2.mjs";
 export class SceneEventHandler {
@@ -31,6 +32,10 @@ export class SceneEventHandler {
         $(this.#canvas).on("mouseleave mouseup", () => this.#handleMouseRelease());
         // Intercept click events
         $(this.#canvas).on("click", e => this.#handleLeftClick(e));
+        // Update zoom slider max value
+        $("#zoom")[0].max = "" + MAX_ZOOM;
+        // Bind zoom slider events
+        $("#zoom").on("input change", e => this.#handleZoomSlider(e));
     }
     #setCursor(cursor) {
         this.#canvas.className = "canvas-" + cursor;
@@ -70,11 +75,11 @@ export class SceneEventHandler {
                 break;
             case "ArrowLeft":
                 e.preventDefault();
-                this.#scene.timewarpBy(0.5);
+                this.#scene.timewarpDec();
                 break;
             case "ArrowRight":
                 e.preventDefault();
-                this.#scene.timewarpBy(2);
+                this.#scene.timewarpInc();
                 break;
             case "KeyD":
                 this.#scene.toggleDebugStats();
@@ -162,6 +167,10 @@ export class SceneEventHandler {
             this.#scene.track(closestHit.body);
             this.#scene.requestManualRedraw();
         }
+    }
+    #handleZoomSlider(e) {
+        const zoomValue = e.target.value;
+        this.#scene.setZoom(parseFloat(zoomValue));
     }
 }
 ;

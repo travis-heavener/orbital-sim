@@ -1,18 +1,31 @@
 import { Body } from "./Body.mjs";
 import { SceneEventHandler } from "./SceneEventHandler.mjs";
-import { adjustViewport } from "./toolbox.mjs";
+import { adjustViewport, numberToCommaString } from "./toolbox.mjs";
 import { Vector2 } from "./Vector2.mjs";
 const DEBUG_INTERVAL_MS = 500;
-const DEFAULT_MPERPX = 2e5;
-const MAX_TIMEWARP = 5e9;
-const MAX_ZOOM = 1e5;
+export const DEFAULT_MPERPX = 2e5;
+export const MAX_ZOOM = 1e5;
+const timewarpIntervals = [
+    1, 5, 25, 100, 500, 2500, 1e4,
+    5e4, 1e5, 5e5, 1e6, 5e6, 1e7, 5e7,
+    1e8, 5e8, 1e9
+];
+// Enum of timewarp indices
+export const TIMEWARPS = {
+    TIMEWARP_1X: 0, TIMEWARP_5X: 1, TIMEWARP_25X: 2,
+    TIMEWARP_100X: 3, TIMEWARP_500X: 4, TIMEWARP_2500X: 5,
+    TIMEWARP_1E4X: 6, TIMEWARP_5E4X: 7, TIMEWARP_1E5X: 8,
+    TIMEWARP_5E5X: 9, TIMEWARP_1E6X: 10, TIMEWARP_5E6X: 11,
+    TIMEWARP_1E7X: 12, TIMEWARP_5E7X: 13, TIMEWARP_1E8X: 14,
+    TIMEWARP_5E8X: 15, TIMEWARP_1E9X: 16
+};
 export class Scene {
     #canvas; // Reference to the HTML canvas element
     #ctx; // Reference to the canvas 2D rendering context
     #sceneOpts; // Canvas rendering options
     eventHandler;
     // Simulation settings
-    #timewarpScale = 1; // Timewarp scale applied to dt when ticking bodies
+    #timewarpIndex = 0; // The timewarp index to apply to dt when ticking bodies
     #zoomScale = 1; // How far the viewport is zoomed OUT by
     #pauseOnLostFocus = true; // Whether or not to pause the sim when the tab is left
     // Debug stats & window telemetry
@@ -48,7 +61,7 @@ export class Scene {
     // Getters
     getSceneOpts() { return this.#sceneOpts; }
     getViewportCenter() { return this.#sceneOpts.center; }
-    getTimewarpScale() { return this.#timewarpScale; }
+    getTimewarpScale() { return timewarpIntervals[this.#timewarpIndex]; }
     getMPerPX() { return this.#zoomScale * DEFAULT_MPERPX; }
     isRunning() { return this.#isRunning; }
     isTracking() { return this.#trackedBody !== null; }
@@ -56,10 +69,17 @@ export class Scene {
     showDebugStats() { return this.#showDebugStats; }
     // Setters
     setViewportCenter(x, y) { this.#sceneOpts.center.x = x, this.#sceneOpts.center.y = y; }
-    setTimewarp(scale) { this.#timewarpScale = Math.min(MAX_TIMEWARP, Math.max(1, scale)); }
-    setZoom(scale) { this.#zoomScale = Math.min(MAX_ZOOM, Math.max(1, scale)); }
-    timewarpBy(scale) { this.setTimewarp(this.#timewarpScale * scale); }
+    timewarpInc() { this.setTimewarpIndex(this.#timewarpIndex + 1); }
+    timewarpDec() { this.setTimewarpIndex(this.#timewarpIndex - 1); }
     zoomBy(scale) { this.setZoom(this.#zoomScale / scale); }
+    setTimewarpIndex(index) {
+        this.#timewarpIndex = Math.max(0, Math.min(timewarpIntervals.length - 1, index));
+        $("#timewarp").text(numberToCommaString(this.getTimewarpScale()));
+    }
+    setZoom(scale) {
+        this.#zoomScale = Math.min(MAX_ZOOM, Math.max(1, scale));
+        $("#zoom")[0].value = "" + Math.floor(this.#zoomScale);
+    }
     // Control handlers
     toggleDebugStats() { this.#showDebugStats = !this.#showDebugStats; }
     togglePauseOnLostFocus() { this.#pauseOnLostFocus = !this.#pauseOnLostFocus; }
@@ -70,8 +90,9 @@ export class Scene {
     // Tick method
     #tick(dt) {
         // Handle high-timewarps
-        const iter = Math.ceil(this.#timewarpScale / 1e7);
-        const dtScaled = dt * this.#timewarpScale / iter;
+        const timewarpScale = this.getTimewarpScale();
+        const iter = Math.ceil(timewarpScale / 1e7);
+        const dtScaled = dt * timewarpScale / iter;
         for (let _ = 0; _ < iter; _++) {
             // Tick each body
             for (let i = 0; i < this.bodies.length; ++i)

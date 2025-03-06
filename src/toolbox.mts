@@ -39,3 +39,8 @@ export const notifyUser = (msg: string) => {
     // Set timeout
     setTimeout(() => $(div).remove(), 3e3);
 };
+
+// Used to comma-separate numbers
+export const numberToCommaString = (n: number): string => {
+    return n.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",");
+}

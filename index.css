@@ -39,6 +39,78 @@ canvas {
 .canvas-draggable { cursor: grab; }
 .canvas-dragging { cursor: grabbing; }
 
+/******************** CONTROLS OVERLAY ********************/
+
+#controls-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+}
+
+#controls-left,
+#controls-right {
+    display: flex;
+    flex-direction: column;
+    row-gap: 1rem;
+
+    position: absolute;
+    top: 0;
+    bottom: 0;
+
+    padding: 2vh 2vw 2vh 0;
+}
+
+#controls-left {
+    align-items: flex-start;
+    left: 0;
+    right: 60vw;
+}
+
+#controls-right {
+    align-items: flex-end;
+    left: 60vw;
+    right: 0;
+}
+
+#controls-right > h1 {
+    color: #f0f0f0;
+    font: 700 1.5rem sans-serif;
+
+    pointer-events: all;
+}
+
+/* Thanks https://stackoverflow.com/a/15935838 */
+input#zoom {
+    position: absolute;
+    top: 20vh;
+    bottom: 20vh;
+    left: 2.5vw;
+
+    writing-mode: vertical-rl;
+    direction: ltr;
+    background: #aaa;
+    width: 8px;
+    appearance: none;
+    -webkit-appearance: none;
+
+    pointer-events: all;
+}
+
+input#zoom::-webkit-slider-runnable-track {
+    padding: 4px 0;
+}
+
+input#zoom::-webkit-slider-thumb {
+    background: #ddd;
+    width: 16px;
+    height: 8px;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
 /******************** NOTIFICATION MODAL ********************/
 
 .notify-div {
