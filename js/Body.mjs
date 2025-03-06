@@ -55,10 +55,10 @@ export class Body {
         this.pos.y += this.velocity.y * dt;
     }
     // Render method
-    render(ctx, sceneOpts) {
+    render(ctx, sceneOpts, mPerPx) {
         // Determine scaled radius
-        const { mPerPx, width, height } = sceneOpts;
-        const { x, y } = this.getDrawnPos(sceneOpts);
+        const { width, height } = sceneOpts;
+        const { x, y } = this.getDrawnPos(sceneOpts, mPerPx);
         const radius = this.radius / mPerPx;
         // Detect if the Body was drawn in frame
         this.#isVisible = (x + radius > 0 && x - radius < width) && (y + radius > 0 && y - radius < height);
@@ -73,8 +73,8 @@ export class Body {
         ctx.fill();
     }
     // Calculate the position of the object on the canvas after scaling
-    getDrawnPos(sceneOpts) {
-        return new Vector2(sceneOpts.width / 2 - (sceneOpts.center.x - this.pos.x) / sceneOpts.mPerPx, sceneOpts.height / 2 + (sceneOpts.center.y - this.pos.y) / sceneOpts.mPerPx);
+    getDrawnPos(sceneOpts, mPerPx) {
+        return new Vector2(sceneOpts.width / 2 - (sceneOpts.center.x - this.pos.x) / mPerPx, sceneOpts.height / 2 + (sceneOpts.center.y - this.pos.y) / mPerPx);
     }
     isVisible() { return this.#isVisible; }
     isDestroyed() { return this.#isDestroyed; }

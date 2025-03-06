@@ -94,7 +94,7 @@ export const solarSystem = (scene: Scene) => {
     });
 
     // Visual scaling
-    sun.radius *= 35;
+    sun.radius *= 40;
     mercury.radius *= 500;
     venus.radius *= 500;
     earth.radius *= 500;
@@ -106,20 +106,11 @@ export const solarSystem = (scene: Scene) => {
     pluto.radius *= 500;
 
     // Add to scene
-    scene.add(sun);
-    scene.add(mercury);
-    scene.add(venus);
-    scene.add(earth);
-    scene.add(mars);
-    scene.add(jupiter);
-    scene.add(saturn);
-    scene.add(uranus);
-    scene.add(neptune);
-    scene.add(pluto);
+    scene.add(sun, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune, pluto);
 
     // Timewarp
-    scene.setZoom(0.0006);
-    scene.setTimewarpScale(2e6);
+    scene.setZoom(6e3);
+    scene.setTimewarp(2e6);
 
     // Track Earth
     scene.track(sun);
@@ -148,8 +139,8 @@ export const earthMoon = (scene: Scene) => {
     scene.add(bodyB);
 
     // Timewarp
-    scene.setZoom(0.24);
-    scene.setTimewarpScale(2e5);
+    scene.setZoom(4.5);
+    scene.setTimewarp(2e5);
 
     // Track Earth
     scene.track(bodyA);
@@ -178,7 +169,7 @@ export const twoBodyProblem = (scene: Scene) => {
     scene.add(bodyB);
 
     // Timewarp
-    scene.setTimewarpScale(5e4);
+    scene.setTimewarp(5e4);
 };
 
 export const threeDoomedBodies = (scene: Scene) => {
@@ -208,11 +199,8 @@ export const threeDoomedBodies = (scene: Scene) => {
         "name": "Body C"
     });
 
-    scene.add(bodyA);
-    scene.add(bodyB);
-    scene.add(bodyC);
+    scene.add(bodyA, bodyB, bodyC);
 
     // Timewarp
-    scene.setZoom(0.75);
-    scene.setTimewarpScale(1e4);
+    scene.setTimewarp(1e4);
 };

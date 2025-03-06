@@ -69,10 +69,10 @@ export class Body {
     }
 
     // Render method
-    render(ctx: CanvasRenderingContext2D, sceneOpts: SceneOpts) {
+    render(ctx: CanvasRenderingContext2D, sceneOpts: SceneOpts, mPerPx: number) {
         // Determine scaled radius
-        const { mPerPx, width, height } = sceneOpts;
-        const { x, y } = this.getDrawnPos(sceneOpts);
+        const { width, height } = sceneOpts;
+        const { x, y } = this.getDrawnPos(sceneOpts, mPerPx);
         const radius = this.radius / mPerPx;
 
         // Detect if the Body was drawn in frame
@@ -91,10 +91,10 @@ export class Body {
     }
 
     // Calculate the position of the object on the canvas after scaling
-    getDrawnPos(sceneOpts: SceneOpts): Vector2 {
+    getDrawnPos(sceneOpts: SceneOpts, mPerPx: number): Vector2 {
         return new Vector2(
-            sceneOpts.width/2 - (sceneOpts.center.x - this.pos.x) / sceneOpts.mPerPx,
-            sceneOpts.height/2 + (sceneOpts.center.y - this.pos.y) / sceneOpts.mPerPx
+            sceneOpts.width/2 - (sceneOpts.center.x - this.pos.x) / mPerPx,
+            sceneOpts.height/2 + (sceneOpts.center.y - this.pos.y) / mPerPx
         );
     }
 

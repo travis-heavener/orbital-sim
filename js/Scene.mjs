@@ -1,50 +1,70 @@
 import { Body } from "./Body.mjs";
+import { SceneEventHandler } from "./SceneEventHandler.mjs";
 import { adjustViewport } from "./toolbox.mjs";
 import { Vector2 } from "./Vector2.mjs";
-const DEFAULT_MPERPX = 3e5;
 const DEBUG_INTERVAL_MS = 500;
+const DEFAULT_MPERPX = 2e5;
 const MAX_TIMEWARP = 1e10;
-const MAX_MPERPX = 2e10;
+const MAX_ZOOM = 1e5;
 export class Scene {
     #canvas; // Reference to the HTML canvas element
     #ctx; // Reference to the canvas 2D rendering context
     #sceneOpts; // Canvas rendering options
+    eventHandler;
     // Simulation settings
-    #timewarpScale = 1; // Timewarp scale
-    #pauseOnLostFocus = true;
+    #timewarpScale = 1; // Timewarp scale applied to dt when ticking bodies
+    #zoomScale = 1; // How far the viewport is zoomed OUT by
+    #pauseOnLostFocus = true; // Whether or not to pause the sim when the tab is left
+    // Debug stats & window telemetry
     #showDebugStats = false;
     #recordCurrentFPS = false; // When true, logs the current FPS & unsets itself
     #currentFPS = null; // Current draws-per-second
     #lastDebugTS = 0; // MS timestamp of last debug poll
     #lastFrameTS = null; // MS timestamp of last frame start
     #isRunning = false;
-    #bodies; // Array of Body objects in simulation
+    // Bodies
+    bodies; // Array of Body objects in simulation
     #trackedBody = null;
     constructor(canvas) {
         this.#canvas = canvas;
         this.#ctx = this.#canvas.getContext("2d");
-        this.#bodies = [];
+        this.bodies = [];
         this.#sceneOpts = {
             center: new Vector2(),
-            mPerPx: DEFAULT_MPERPX,
             width: 0, height: 0
         };
         // Initial viewport update
-        this.#updateViewport();
+        this.updateViewport();
         // Bind DOM events
-        this.#bindEvents();
+        this.eventHandler = new SceneEventHandler(this, this.#canvas);
     }
-    add(body) { this.#bodies.push(body); }
-    clear() { while (this.#bodies.length)
-        this.#bodies.shift(); }
+    add(...bodies) { for (const body of bodies)
+        this.bodies.push(body); }
+    clear() { while (this.bodies.length)
+        this.bodies.shift(); }
     // Simulation setters
-    setZoom(scale) { this.#sceneOpts.mPerPx = DEFAULT_MPERPX / scale; }
-    setTimewarpScale(scale) { this.#timewarpScale = scale; }
     track(body) { this.#trackedBody = body; }
     untrack() { this.#trackedBody = null; }
-    #updateViewport() {
+    // Getters
+    getSceneOpts() { return this.#sceneOpts; }
+    getViewportCenter() { return this.#sceneOpts.center; }
+    getTimewarpScale() { return this.#timewarpScale; }
+    getMPerPX() { return this.#zoomScale * DEFAULT_MPERPX; }
+    isRunning() { return this.#isRunning; }
+    isTracking() { return this.#trackedBody !== null; }
+    doPauseOnLostFocus() { return this.#pauseOnLostFocus; }
+    // Setters
+    setViewportCenter(x, y) { this.#sceneOpts.center.x = x, this.#sceneOpts.center.y = y; }
+    setTimewarp(scale) { this.#timewarpScale = Math.min(MAX_TIMEWARP, Math.max(1, scale)); }
+    setZoom(scale) { this.#zoomScale = Math.min(MAX_ZOOM, Math.max(1, scale)); }
+    timewarpBy(scale) { this.setTimewarp(this.#timewarpScale * scale); }
+    zoomBy(scale) { this.setZoom(this.#zoomScale / scale); }
+    // Control handlers
+    toggleDebugStats() { this.#showDebugStats = !this.#showDebugStats; }
+    togglePauseOnLostFocus() { this.#pauseOnLostFocus = !this.#pauseOnLostFocus; }
+    updateViewport() {
         [this.#sceneOpts.width, this.#sceneOpts.height] = adjustViewport(this.#canvas);
-        this.#requestManualRedraw(); // Request redraw
+        this.requestManualRedraw(); // Request redraw
     }
     // Tick method
     #tick(dt) {
@@ -53,29 +73,29 @@ export class Scene {
         const dtScaled = dt * this.#timewarpScale / iter;
         for (let _ = 0; _ < iter; _++) {
             // Tick each body
-            for (let i = 0; i < this.#bodies.length; ++i)
-                this.#bodies[i].tick(this.#bodies, dtScaled);
+            for (let i = 0; i < this.bodies.length; ++i)
+                this.bodies[i].tick(this.bodies, dtScaled);
             // Check for collisions
             const newBodies = [];
-            for (let i = 0; i < this.#bodies.length; ++i) {
+            for (let i = 0; i < this.bodies.length; ++i) {
                 // Merge bodies if collided
-                const collidedBodies = this.#bodies[i].getCollidedBodies();
-                if (collidedBodies.length && !this.#bodies[i].isDestroyed())
-                    newBodies.push(Body.merge(this.#bodies[i], ...collidedBodies));
+                const collidedBodies = this.bodies[i].getCollidedBodies();
+                if (collidedBodies.length && !this.bodies[i].isDestroyed())
+                    newBodies.push(Body.merge(this.bodies[i], ...collidedBodies));
             }
             // Free destroyed bodies (O(1) swap removal)
-            for (let i = 0; i < this.#bodies.length; ++i) {
-                const body = this.#bodies[i];
+            for (let i = 0; i < this.bodies.length; ++i) {
+                const body = this.bodies[i];
                 if (body.isDestroyed()) {
-                    this.#bodies[i--] = this.#bodies[this.#bodies.length - 1];
-                    this.#bodies.pop();
+                    this.bodies[i--] = this.bodies[this.bodies.length - 1];
+                    this.bodies.pop();
                     // Untrack if destroyed
                     if (this.#trackedBody === body)
                         this.untrack();
                 }
             }
             // Insert new bodies
-            this.#bodies.push(...newBodies);
+            this.bodies.push(...newBodies);
         }
     }
     // Draw method
@@ -91,8 +111,9 @@ export class Scene {
         // Clear canvas
         this.#ctx.clearRect(0, 0, this.#sceneOpts.width, this.#sceneOpts.height);
         // Render children
-        for (let i = 0; i < this.#bodies.length; ++i)
-            this.#bodies[i].render(this.#ctx, this.#sceneOpts);
+        const mPerPx = this.getMPerPX();
+        for (let i = 0; i < this.bodies.length; ++i)
+            this.bodies[i].render(this.#ctx, this.#sceneOpts, mPerPx);
         // Show debug stats
         if (this.#showDebugStats) {
             // Calculate TPS/FPS
@@ -103,7 +124,7 @@ export class Scene {
             const { height } = this.#sceneOpts;
             const fontSize = ~~(height / 50);
             this.#ctx.fillStyle = "#f0f0f0";
-            this.#ctx.font = `${fontSize}px sans-serif`;
+            this.#ctx.font = `bold ${fontSize}px sans-serif`;
             this.#ctx.fillText(`FPS: ${fps}`, height * 0.02, height * 0.03);
             // Update debug TS
             const now = Date.now();
@@ -124,7 +145,7 @@ export class Scene {
         }
     }
     // Used to manually redraw the canvas in case the simulation is stopped
-    #requestManualRedraw() {
+    requestManualRedraw() {
         if (!this.#isRunning)
             this.#draw(performance.now());
     }
@@ -139,140 +160,6 @@ export class Scene {
     stop() {
         this.#isRunning = false;
         this.#lastFrameTS = null;
-    }
-    #bindEvents() {
-        // Bind viewport change events
-        $(window).on("resize", () => this.#updateViewport());
-        // Pause game on lost focus
-        let isPausedOnBlur = false;
-        $(window).on("blur", () => {
-            if (!this.#isRunning || !this.#pauseOnLostFocus)
-                return;
-            isPausedOnBlur = true;
-            this.stop();
-        });
-        $(window).on("focus", () => {
-            if (!isPausedOnBlur || !this.#pauseOnLostFocus)
-                return;
-            isPausedOnBlur = false;
-            this.start();
-        });
-        $("body").on("wheel", e => {
-            const { deltaY } = e.originalEvent;
-            const viewportDelta = deltaY / window.innerHeight;
-            if (Math.abs(viewportDelta) < 0.002)
-                return;
-            // Update viewport scaling
-            this.#sceneOpts.mPerPx *= 1 + viewportDelta;
-            this.#sceneOpts.mPerPx = Math.min(MAX_MPERPX, Math.max(DEFAULT_MPERPX, this.#sceneOpts.mPerPx));
-            // Request redraw
-            this.#requestManualRedraw();
-        });
-        // Key events
-        let draggingBy = null;
-        $(window).on("keydown", e => {
-            switch (e.code) {
-                case "ArrowUp":
-                    e.preventDefault();
-                    this.#sceneOpts.mPerPx = Math.max(DEFAULT_MPERPX, this.#sceneOpts.mPerPx / 1.25);
-                    this.#requestManualRedraw();
-                    break;
-                case "ArrowDown":
-                    e.preventDefault();
-                    this.#sceneOpts.mPerPx = Math.min(MAX_MPERPX, this.#sceneOpts.mPerPx * 1.25);
-                    this.#requestManualRedraw();
-                    break;
-                case "ArrowLeft":
-                    e.preventDefault();
-                    this.#timewarpScale = Math.max(1, this.#timewarpScale / 2);
-                    break;
-                case "ArrowRight":
-                    e.preventDefault();
-                    this.#timewarpScale = Math.min(MAX_TIMEWARP, this.#timewarpScale * 2);
-                    break;
-                case "KeyD":
-                    this.#showDebugStats = !this.#showDebugStats;
-                    break;
-                case "KeyP":
-                    this[this.#isRunning ? "stop" : "start"]();
-                    break;
-                case "KeyT":
-                    this.#pauseOnLostFocus = !this.#pauseOnLostFocus;
-                    break;
-                default:
-                    if (e.key === "Shift" && draggingBy === null) {
-                        e.preventDefault();
-                        this.#setCursor("draggable");
-                    }
-                    break;
-            }
-        });
-        $(window).on("keyup", e => {
-            if (e.key === "Shift" && draggingBy !== "MMB")
-                this.#setCursor("default");
-        });
-        // Drag events
-        let lastTouch = null;
-        $("canvas").on("mousedown", (e) => {
-            // Drag by Shift + LMB or MMB
-            if (!(e.which === 1 && e.shiftKey) && e.which !== 2)
-                return;
-            // Intercept coordinates
-            lastTouch = new Vector2(e.clientX, e.clientY);
-            this.#setCursor("dragging"); // Update cursor
-            // Update dragging method
-            draggingBy = e.which === 1 ? "LMB" : "MMB";
-        });
-        $("canvas").on("mousemove", (e) => {
-            if (lastTouch === null)
-                return;
-            // Cancel tracking
-            if (this.#trackedBody !== null)
-                this.untrack();
-            // Move canvas
-            this.#sceneOpts.center.x += (lastTouch.x - e.clientX) * this.#sceneOpts.mPerPx;
-            this.#sceneOpts.center.y += (e.clientY - lastTouch.y) * this.#sceneOpts.mPerPx;
-            // Record coordinates
-            lastTouch.x = e.clientX, lastTouch.y = e.clientY;
-            // Request redraw
-            this.#requestManualRedraw();
-        });
-        $("canvas").on("mouseleave mouseup", () => {
-            lastTouch = null;
-            draggingBy = null;
-            this.#setCursor("default"); // Update cursor
-        });
-        // Intercept click events
-        $("canvas").on("click", e => {
-            if (e.shiftKey)
-                return; // Ignore dragging clicks
-            // Add buffer area around smaller bodies
-            const bufferSize = (this.#sceneOpts.width + this.#sceneOpts.height) / 180;
-            // Search all visible bodies
-            const closestHit = { body: null, dist: Infinity };
-            for (let i = 0; i < this.#bodies.length; ++i) {
-                if (!this.#bodies[i].isVisible())
-                    continue; // Skip off-screen elements
-                // Calculate overlap
-                const body = this.#bodies[i];
-                const visibleRadius = body.radius / this.#sceneOpts.mPerPx;
-                const { x, y } = body.getDrawnPos(this.#sceneOpts);
-                const dist = Math.hypot(x - e.clientX, y - e.clientY);
-                // Check if click is intercepted by body
-                if (dist <= visibleRadius + bufferSize && closestHit.dist > dist) {
-                    closestHit.body = body;
-                    closestHit.dist = dist;
-                }
-            }
-            // Track closest hit
-            if (closestHit.body !== null) {
-                this.track(closestHit.body);
-                this.#requestManualRedraw();
-            }
-        });
-    }
-    #setCursor(cursor) {
-        this.#canvas.className = "canvas-" + cursor;
     }
 }
 ;
