@@ -47,6 +47,16 @@ export const solarSystem = (scene) => {
     scene.add(venus);
     scene.add(earth);
     scene.add(mars);
+    for (let i = 0; i < 0; ++i) {
+        scene.add(new Body({
+            "pos": new Vector2(2.28e11 + (i + 2) * 1e12, 0),
+            "velocity": new Vector2(0, 24_080),
+            "mass": 6.417e23,
+            "radius": 3.390e6 * 500,
+            "color": "#b56765",
+            "name": "Blob-" + i
+        }));
+    }
     // Timewarp
     scene.setZoom(0.0006);
     scene.setTimewarpScale(2e6);

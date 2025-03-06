@@ -6,7 +6,7 @@ let scene;
 $(() => {
     const canvas = $("canvas")[0];
     // Create Scene
-    scene = new Scene(canvas, 20, 100);
+    scene = new Scene(canvas, 30, 60);
     // Sim init
     init();
 });

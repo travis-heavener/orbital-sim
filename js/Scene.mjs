@@ -15,11 +15,10 @@ export class Scene {
     #_recordTPS = false; // When true, logs the current TPS & unsets itself
     #_recordFPS = false; // When true, logs the current FPS & unsets itself
     #lastTickTS = null; // Last sim-tick timestamp
-    #lastDrawTS = null; // Last display render timestamp
     #currentTPS = null; // Current ticks-per-second
     #currentFPS = null; // Current draws-per-second
-    #tickRate; // In MS, time between simulation ticks
-    #drawRate; // In MS, time between render calls
+    #tickRateSec; // In MS, time between simulation ticks
+    #drawRateSec; // In MS, time between render calls
     #bodies; // Array of Body objects in simulation
     #trackedBody = null;
     // Intervals
@@ -30,8 +29,8 @@ export class Scene {
     constructor(canvas, ticksPerSec, framesPerSec) {
         this.#canvas = canvas;
         this.#ctx = this.#canvas.getContext("2d");
-        this.#tickRate = 1 / ticksPerSec;
-        this.#drawRate = 1 / framesPerSec;
+        this.#tickRateSec = 1 / ticksPerSec;
+        this.#drawRateSec = 1 / framesPerSec;
         this.#bodies = [];
         this.#sceneOpts = {
             center: new Vector2(),
@@ -57,8 +56,9 @@ export class Scene {
     }
     // Tick method
     #tick() {
+        const frameStart = Date.now();
         // Determine elapsed seconds
-        const dt = (this.#lastTickTS ? (Date.now() - this.#lastTickTS) : this.#tickRate) / 1e3;
+        const dt = (this.#lastTickTS ? (frameStart - this.#lastTickTS) : this.#tickRateSec) / 1e3;
         const dtScaled = dt * this.#timewarpScale;
         // Tick each body
         for (let i = 0; i < this.#bodies.length; ++i)
@@ -89,7 +89,7 @@ export class Scene {
             this.#bodies[i].clearCache();
         // Update timestamp
         const now = Date.now();
-        const elapsedSec = (now - this.#lastTickTS) / 1e3;
+        const elapsedSec = (now - frameStart) / 1e3;
         this.#lastTickTS = now;
         if (this.#_recordTPS) {
             this.#currentTPS = 1 / elapsedSec;
@@ -97,10 +97,11 @@ export class Scene {
         }
         // Update interval
         if (this.#isRunning)
-            this.#tickTimeout = setTimeout(() => this.#tick(), Math.max(0, this.#tickRate - elapsedSec));
+            this.#tickTimeout = setTimeout(() => this.#tick(), Math.max(0, (this.#tickRateSec - elapsedSec) * 1e3));
     }
     // Draw method
     #draw() {
+        const frameStart = Date.now();
         // Track a tracked/focused body
         if (this.#trackedBody !== null)
             this.#sceneOpts.center.assign(this.#trackedBody.pos);
@@ -110,13 +111,12 @@ export class Scene {
         for (let i = 0; i < this.#bodies.length; ++i)
             this.#bodies[i].render(this.#ctx, this.#sceneOpts);
         // Show debug stats
-        const now = Date.now();
         if (this.#showDebugStats) {
             // Calculate TPS/FPS
             let fps = "-", tps = "-";
             if (this.#currentFPS !== null && this.#currentTPS !== null) {
-                fps = Math.min(1 / this.#drawRate, this.#currentFPS).toFixed(1);
-                tps = Math.min(1 / this.#tickRate, this.#currentTPS).toFixed(1);
+                fps = Math.min(1 / this.#drawRateSec, this.#currentFPS).toFixed(1);
+                tps = Math.min(1 / this.#tickRateSec, this.#currentTPS).toFixed(1);
             }
             // Display telemetry
             const { height } = this.#sceneOpts;
@@ -126,29 +126,27 @@ export class Scene {
             this.#ctx.fillText(`FPS: ${fps}`, height * 0.02, height * 0.03);
             this.#ctx.fillText(`TPS: ${tps}`, height * 0.02, height * 0.03 + fontSize * 1.25);
             // Update debug TS
+            const now = Date.now();
             if (now - this.#lastDebugTS > DEBUG_INTERVAL_MS) {
                 this.#_recordFPS = this.#_recordTPS = true;
                 this.#lastDebugTS = now;
             }
         }
         // Update timestamp
-        const elapsedSec = (now - this.#lastDrawTS) / 1e3;
-        this.#lastDrawTS = now;
+        const now = Date.now();
+        const elapsedSec = (now - frameStart) / 1e3;
         if (this.#_recordFPS) {
             this.#currentFPS = 1 / elapsedSec;
             this.#_recordFPS = false;
         }
         // Update interval
         if (this.#isRunning)
-            this.#drawTimeout = setTimeout(() => this.#draw(), Math.max(0, this.#drawRate - elapsedSec));
+            this.#drawTimeout = setTimeout(() => this.#draw(), Math.max(0, (this.#drawRateSec - elapsedSec) * 1e3));
     }
     // Used to manually redraw the canvas in case the simulation is stopped
     #requestManualRedraw() {
         const now = Date.now();
-        if (!this.#isRunning && now - this.#lastManualRedraw >= this.#drawRate) {
-            // Correct drawTS for debug stats
-            if (this.#lastDrawTS === null)
-                this.#lastDrawTS = now - this.#drawRate;
+        if (!this.#isRunning && now - this.#lastManualRedraw >= this.#drawRateSec) {
             // Redraw
             this.#draw();
             this.#lastManualRedraw = now;
@@ -159,20 +157,19 @@ export class Scene {
         if (this.#isRunning)
             return console.warn("Simulation already running.");
         // Initial tick
-        this.#lastTickTS = Date.now() - this.#tickRate;
+        this.#lastTickTS = Date.now() - this.#tickRateSec;
         this.#tick();
         // Initial render
-        this.#lastDrawTS = Date.now() - this.#drawRate;
         this.#draw();
-        this.#tickTimeout = setTimeout(() => this.#tick(), this.#tickRate);
-        this.#drawTimeout = setTimeout(() => this.#draw(), this.#drawRate);
+        this.#tickTimeout = setTimeout(() => this.#tick(), this.#tickRateSec);
+        this.#drawTimeout = setTimeout(() => this.#draw(), this.#drawRateSec);
         this.#isRunning = true;
     }
     // Stop intervals
     stop() {
         clearTimeout(this.#tickTimeout);
         clearTimeout(this.#drawTimeout);
-        this.#lastTickTS = this.#lastDrawTS = null;
+        this.#lastTickTS = null;
         this.#isRunning = false;
     }
     #bindEvents() {
