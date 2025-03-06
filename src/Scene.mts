@@ -71,6 +71,7 @@ export class Scene {
     isRunning() { return this.#isRunning; }
     isTracking() { return this.#trackedBody !== null; }
     doPauseOnLostFocus() { return this.#pauseOnLostFocus; }
+    showDebugStats() { return this.#showDebugStats; }
 
     // Setters
     setViewportCenter(x: number, y: number) { this.#sceneOpts.center.x = x, this.#sceneOpts.center.y = y; }

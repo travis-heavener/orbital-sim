@@ -53,6 +53,7 @@ export class Scene {
     isRunning() { return this.#isRunning; }
     isTracking() { return this.#trackedBody !== null; }
     doPauseOnLostFocus() { return this.#pauseOnLostFocus; }
+    showDebugStats() { return this.#showDebugStats; }
     // Setters
     setViewportCenter(x, y) { this.#sceneOpts.center.x = x, this.#sceneOpts.center.y = y; }
     setTimewarp(scale) { this.#timewarpScale = Math.min(MAX_TIMEWARP, Math.max(1, scale)); }

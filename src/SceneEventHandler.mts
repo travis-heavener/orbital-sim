@@ -1,5 +1,6 @@
 import { Body } from "./Body.mjs";
 import { Scene } from "./Scene.mjs";
+import { notifyUser } from "./toolbox.mjs";
 import { Vector2 } from "./Vector2.mjs";
 
 export class SceneEventHandler {
@@ -91,11 +92,23 @@ export class SceneEventHandler {
                 e.preventDefault();
                 this.#scene.timewarpBy(2);
                 break;
-            case "KeyD": this.#scene.toggleDebugStats(); break;
-            case "KeyP":
-                this.#scene.isRunning() ? this.#scene.stop() : this.#scene.start();
+            case "KeyD":
+                this.#scene.toggleDebugStats();
+                notifyUser("Debug Info " + (this.#scene.showDebugStats() ? "On" : "Off"));
                 break;
-            case "KeyT": this.#scene.togglePauseOnLostFocus(); break;
+            case "KeyP":
+                if (this.#scene.isRunning()) {
+                    this.#scene.stop();
+                    notifyUser("Paused");
+                } else {
+                    this.#scene.start();
+                    notifyUser("");
+                }
+                break;
+            case "KeyT":
+                this.#scene.togglePauseOnLostFocus();
+                notifyUser("Pause on Lost Focus " + (this.#scene.doPauseOnLostFocus() ? "On" : "Off"));
+                break;
             default:
                 if (e.key === "Shift" && this.#draggingBy === null) {
                     e.preventDefault();
