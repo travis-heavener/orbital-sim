@@ -9,7 +9,7 @@ $(() => {
     const canvas = $("canvas")[0] as HTMLCanvasElement;
 
     // Create Scene
-    scene = new Scene(canvas, 30, 60);
+    scene = new Scene(canvas, 60, 60);
 
     // Sim init
     init();
