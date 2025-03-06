@@ -4,7 +4,8 @@ import { Vector2 } from "./Vector2.mjs";
 
 const DEFAULT_MPERPX = 3e5;
 const DEBUG_INTERVAL_MS = 500;
-const MAX_TIMEWARP = 1e9;
+const MAX_TIMEWARP = 1e10;
+const MAX_MPERPX = 2e10;
 
 export type SceneOpts = {
     center: Vector2, // Center position, in 
@@ -69,9 +70,8 @@ export class Scene {
     // Tick method
     #tick(dt: number) {
         // Handle high-timewarps
-        const iter = Math.ceil(this.#timewarpScale / 1e7);
+        const iter = Math.ceil(this.#timewarpScale / 2e7);
         const dtScaled = dt * this.#timewarpScale / iter;
-        if (iter > 1) console.log("HYPERSPEED", iter);
         for (let _ = 0; _ < iter; _++) {
             // Tick each body
             for (let i = 0; i < this.#bodies.length; ++i)
@@ -199,7 +199,7 @@ export class Scene {
 
             // Update viewport scaling
             this.#sceneOpts.mPerPx *= 1 + viewportDelta;
-            this.#sceneOpts.mPerPx = Math.min(1e10, Math.max(DEFAULT_MPERPX, this.#sceneOpts.mPerPx));
+            this.#sceneOpts.mPerPx = Math.min(MAX_MPERPX, Math.max(DEFAULT_MPERPX, this.#sceneOpts.mPerPx));
 
             // Request redraw
             this.#requestManualRedraw();
@@ -216,7 +216,7 @@ export class Scene {
                     break;
                 case "ArrowDown":
                     e.preventDefault();
-                    this.#sceneOpts.mPerPx = Math.min(1e10, this.#sceneOpts.mPerPx * 1.25);
+                    this.#sceneOpts.mPerPx = Math.min(MAX_MPERPX, this.#sceneOpts.mPerPx * 1.25);
                     this.#requestManualRedraw();
                     break;
                 case "ArrowLeft":
