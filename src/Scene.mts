@@ -6,7 +6,7 @@ import { Vector2 } from "./Vector2.mjs";
 const DEBUG_INTERVAL_MS = 500;
 
 const DEFAULT_MPERPX = 2e5;
-const MAX_TIMEWARP = 1e10;
+const MAX_TIMEWARP = 5e9;
 const MAX_ZOOM = 1e5;
 
 export type SceneOpts = {
@@ -92,7 +92,7 @@ export class Scene {
     // Tick method
     #tick(dt: number) {
         // Handle high-timewarps
-        const iter = Math.ceil(this.#timewarpScale / 2e7);
+        const iter = Math.ceil(this.#timewarpScale / 1e7);
         const dtScaled = dt * this.#timewarpScale / iter;
         for (let _ = 0; _ < iter; _++) {
             // Tick each body
