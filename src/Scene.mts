@@ -37,8 +37,8 @@ export class Scene {
     eventHandler: SceneEventHandler;
 
     // Simulation settings
-    #timewarpIndex = 0; // The timewarp index to apply to dt when ticking bodies
-    #zoomScale = 1; // How far the viewport is zoomed OUT by
+    #timewarpIndex: number; // The timewarp index to apply to dt when ticking bodies
+    #zoomScale: number; // How far the viewport is zoomed OUT by
     #pauseOnLostFocus = true; // Whether or not to pause the sim when the tab is left
 
     // Debug stats & window telemetry
@@ -63,6 +63,10 @@ export class Scene {
             center: new Vector2(),
             width: 0, height: 0
         };
+
+        // Set initial zoom & timewarp
+        this.setZoom(1);
+        this.setTimewarpIndex(0);
 
         // Initial viewport update
         this.updateViewport();
