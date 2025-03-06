@@ -3,6 +3,7 @@ import { adjustViewport } from "./toolbox.mjs";
 import { Vector2 } from "./Vector2.mjs";
 const DEFAULT_MPERPX = 3e5;
 const DEBUG_INTERVAL_MS = 500;
+const MAX_TIMEWARP = 1e9;
 export class Scene {
     #canvas; // Reference to the HTML canvas element
     #ctx; // Reference to the canvas 2D rendering context
@@ -46,31 +47,37 @@ export class Scene {
     }
     // Tick method
     #tick(dt) {
-        // Tick each body
-        const dtScaled = dt * this.#timewarpScale;
-        for (let i = 0; i < this.#bodies.length; ++i)
-            this.#bodies[i].tick(this.#bodies, dtScaled);
-        // Check for collisions
-        const newBodies = [];
-        for (let i = 0; i < this.#bodies.length; ++i) {
-            // Merge bodies if collided
-            const collidedBodies = this.#bodies[i].getCollidedBodies();
-            if (collidedBodies.length && !this.#bodies[i].isDestroyed())
-                newBodies.push(Body.merge(this.#bodies[i], ...collidedBodies));
-        }
-        // Free destroyed bodies (O(1) swap removal)
-        for (let i = 0; i < this.#bodies.length; ++i) {
-            const body = this.#bodies[i];
-            if (body.isDestroyed()) {
-                this.#bodies[i--] = this.#bodies[this.#bodies.length - 1];
-                this.#bodies.pop();
-                // Untrack if destroyed
-                if (this.#trackedBody === body)
-                    this.untrack();
+        // Handle high-timewarps
+        const iter = Math.ceil(this.#timewarpScale / 1e7);
+        const dtScaled = dt * this.#timewarpScale / iter;
+        if (iter > 1)
+            console.log("HYPERSPEED", iter);
+        for (let _ = 0; _ < iter; _++) {
+            // Tick each body
+            for (let i = 0; i < this.#bodies.length; ++i)
+                this.#bodies[i].tick(this.#bodies, dtScaled);
+            // Check for collisions
+            const newBodies = [];
+            for (let i = 0; i < this.#bodies.length; ++i) {
+                // Merge bodies if collided
+                const collidedBodies = this.#bodies[i].getCollidedBodies();
+                if (collidedBodies.length && !this.#bodies[i].isDestroyed())
+                    newBodies.push(Body.merge(this.#bodies[i], ...collidedBodies));
             }
+            // Free destroyed bodies (O(1) swap removal)
+            for (let i = 0; i < this.#bodies.length; ++i) {
+                const body = this.#bodies[i];
+                if (body.isDestroyed()) {
+                    this.#bodies[i--] = this.#bodies[this.#bodies.length - 1];
+                    this.#bodies.pop();
+                    // Untrack if destroyed
+                    if (this.#trackedBody === body)
+                        this.untrack();
+                }
+            }
+            // Insert new bodies
+            this.#bodies.push(...newBodies);
         }
-        // Insert new bodies
-        this.#bodies.push(...newBodies);
     }
     // Draw method
     #draw(frameStart) {
@@ -182,7 +189,7 @@ export class Scene {
                     break;
                 case "ArrowRight":
                     e.preventDefault();
-                    this.#timewarpScale = Math.min(1e7, this.#timewarpScale * 2);
+                    this.#timewarpScale = Math.min(MAX_TIMEWARP, this.#timewarpScale * 2);
                     break;
                 case "KeyD":
                     this.#showDebugStats = !this.#showDebugStats;
