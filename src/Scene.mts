@@ -308,8 +308,10 @@ export class Scene {
             }
 
             // Track closest hit
-            if (closestHit.body !== null)
+            if (closestHit.body !== null) {
                 this.track(closestHit.body);
+                this.#requestManualRedraw();
+            }
         });
     }
 
