@@ -103,8 +103,7 @@ export class Body {
         const vf = new Vector2();
         const af = new Vector2();
         const color = [0, 0, 0];
-        for (let i = 0; i < bodies.size; ++i) {
-            const body = bodies[i];
+        for (const body of bodies) {
             mf += body.mass;
             rfCubed += body.radius ** 3;
             pf.add(new Vector2(body.pos).scale(body.mass));
