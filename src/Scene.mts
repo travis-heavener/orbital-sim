@@ -1,6 +1,6 @@
 import { Body } from "./Body.mjs";
 import { SceneEventHandler } from "./SceneEventHandler.mjs";
-import { adjustViewport, numberToCommaString } from "./toolbox.mjs";
+import { adjustViewport, formatTimewarp, numberToCommaString } from "./toolbox.mjs";
 import { Vector2 } from "./Vector2.mjs";
 
 const DEBUG_INTERVAL_MS = 500;
@@ -96,7 +96,7 @@ export class Scene {
 
     setTimewarpIndex(index: number) {
         this.#timewarpIndex = Math.max(0, Math.min(timewarpIntervals.length-1, index));
-        $("#timewarp").text(numberToCommaString(this.getTimewarpScale()));
+        $("#timewarp").text(formatTimewarp(this.getTimewarpScale()));
     }
     setZoom(scale: number) {
         this.#zoomScale = Math.min(MAX_ZOOM, Math.max(1, scale));

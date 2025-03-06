@@ -44,3 +44,35 @@ export const notifyUser = (msg: string) => {
 export const numberToCommaString = (n: number): string => {
     return n.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",");
 }
+
+// Used to format timewarps
+const roundTimewarp = (w: number, floor: number) => Math.floor(w / floor * 10) / 10;
+export const formatTimewarp = (w: number): string => {
+    let prefix: string;
+    if (w >= 3.154e7) {
+        w = roundTimewarp(w, 3.154e7);
+        prefix = "yr";
+    } else if (w >= 2.628e6) {
+        w = roundTimewarp(w, 2.628e6);
+        prefix = "mo";
+    } else if (w >= 604800) {
+        w = roundTimewarp(w, 604800);
+        prefix = "wk";
+    } else if (w >= 86400) {
+        w = roundTimewarp(w, 86400);
+        prefix = "day";
+    } else if (w >= 3600) {
+        w = roundTimewarp(w, 3600);
+        prefix = "hr";
+    } else if (w >= 60) {
+        w = roundTimewarp(w, 60);
+        prefix = "min";
+    } else if (w > 1) {
+        prefix = "sec"
+    } else {
+        return "Realtime";
+    }
+
+    // Add prefix
+    return `${w} ${prefix}${w === 1 ? "" : "s"}/sec`;
+};
