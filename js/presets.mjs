@@ -10,17 +10,17 @@ export const solarSystem = (scene) => {
         "name": "Sun"
     });
     const mercury = new Body({
-        "pos": new Vector2(5.8e10, 0),
+        "pos": new Vector2(5.7909e10, 0),
         "velocity": new Vector2(0, 47_360),
-        "mass": 3.30e23,
-        "radius": 2.44e6,
+        "mass": 3.301e23,
+        "radius": 2.441e6,
         "color": "#a4a4a4",
         "name": "Mercury"
     });
     const venus = new Body({
-        "pos": new Vector2(1.08e11, 0),
-        "velocity": new Vector2(0, 35_000),
-        "mass": 4.867e24,
+        "pos": new Vector2(1.0821e11, 0),
+        "velocity": new Vector2(0, 35_020),
+        "mass": 4.8673e24,
         "radius": 6.052e6,
         "color": "#d67e26",
         "name": "Venus"
@@ -28,7 +28,7 @@ export const solarSystem = (scene) => {
     const earth = new Body({
         "pos": new Vector2(1.49e11, 0),
         "velocity": new Vector2(0, 29_780),
-        "mass": 5.972e24,
+        "mass": 5.9722e24,
         "radius": 6.378e6,
         "color": "#4d8feb",
         "name": "Earth"
