@@ -4,6 +4,8 @@ import { adjustViewport, formatTimewarp, numberToCommaString } from "./toolbox.m
 import { Vector2 } from "./Vector2.mjs";
 
 const DEBUG_INTERVAL_MS = 500;
+const TRACK_ANIM_NUM_FRAMES = 99;
+const TRACK_ANIM_DURATION_MS = 495;
 
 export const DEFAULT_MPERPX = 2e5;
 export const MAX_ZOOM = 1e5;
@@ -52,6 +54,7 @@ export class Scene {
     // Bodies
     bodies: Body[]; // Array of Body objects in simulation
     #trackedBody: Body = null;
+    #trackedBodyTimeout: number = null; // Holds the timeout ID for animating to track a new body
 
     constructor(canvas: HTMLCanvasElement) {
         this.#canvas = canvas;
@@ -84,9 +87,71 @@ export class Scene {
     }
     clear() { while (this.bodies.length) this.bodies.shift(); }
 
-    // Simulation setters
-    track(body: Body) { this.#trackedBody = body; }
-    untrack() { this.#trackedBody = null; }
+    track(body: Body) {
+        // Animate to track center
+        if (this.#trackedBodyTimeout !== null)
+            clearTimeout(this.#trackedBodyTimeout);
+
+        const startPos = this.#sceneOpts.center, startZoom = this.#zoomScale;
+
+        // Calculate zoom-out zoom
+        const startRadius = this.#trackedBody === null ? 0 : this.#trackedBody.radius;
+        const distM = Math.hypot(startPos.x - body.pos.x, startPos.y - body.pos.y) + body.radius + startRadius;
+        const maxDimPx = Math.max(this.#sceneOpts.width, this.#sceneOpts.height);
+        const outZoom = 5 * distM / maxDimPx / DEFAULT_MPERPX;
+
+        // Calculate final zoom to fit body
+        const targetRadiusPX = (this.#sceneOpts.width + this.#sceneOpts.height) / 20;
+        const targetZoom = body.radius / targetRadiusPX / DEFAULT_MPERPX
+
+        // Start animation
+        this.#trackedBody = null;
+        this.stop();
+
+        let animPhase: "zoomOut" | "move" | "zoomIn" = "zoomOut";
+        let frameNo = 0;
+        const updateCenterTimeout = (): number | null => {
+            if (frameNo++ === TRACK_ANIM_NUM_FRAMES) { // Check if all frames have been rendered
+                this.#trackedBody = body;
+                this.setZoom(targetZoom);
+                this.start();
+                return null;
+            } else { // Otherwise, interpolate
+                // Update anim phase
+                if (frameNo === TRACK_ANIM_NUM_FRAMES/3)
+                    animPhase = "move";
+                else if (frameNo === 2*TRACK_ANIM_NUM_FRAMES/3)
+                    animPhase = "zoomIn";
+
+                // Handle animation phase
+                let frameStep = 3 * frameNo / TRACK_ANIM_NUM_FRAMES;
+                switch (animPhase) {
+                    case "zoomOut": // Update zoom
+                        this.setZoom(startZoom + (outZoom - startZoom) * frameStep);
+                        break;
+                    case "move": // Update center
+                        --frameStep;
+                        this.#sceneOpts.center.x = startPos.x + (body.pos.x - startPos.x) * frameStep;
+                        this.#sceneOpts.center.y = startPos.y + (body.pos.y - startPos.y) * frameStep;
+                        break;
+                    case "zoomIn": // Update zoom
+                        frameStep -= 2;
+                        this.setZoom(outZoom + (targetZoom - outZoom) * frameStep);
+                        break;
+                }
+
+                // Request redraw
+                this.requestManualRedraw();
+
+                // Return new timeout
+                return setTimeout(
+                    () => this.#trackedBodyTimeout = updateCenterTimeout(),
+                    TRACK_ANIM_DURATION_MS / TRACK_ANIM_NUM_FRAMES
+                );
+            }
+        };
+        this.#trackedBodyTimeout = updateCenterTimeout();
+    }
 
     // Getters
     getSceneOpts() { return this.#sceneOpts; }
@@ -103,6 +168,7 @@ export class Scene {
     timewarpInc() { this.setTimewarpIndex(this.#timewarpIndex + 1); }
     timewarpDec() { this.setTimewarpIndex(this.#timewarpIndex - 1); }
     zoomBy(scale: number) { this.setZoom( this.#zoomScale / scale ); }
+    untrack() { this.#trackedBody = null; }
 
     setTimewarpIndex(index: number) {
         this.#timewarpIndex = Math.max(0, Math.min(timewarpIntervals.length-1, index));
