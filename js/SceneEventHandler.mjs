@@ -64,6 +64,9 @@ export class SceneEventHandler {
         this.#scene.requestManualRedraw(); // Request redraw
     }
     #handleKeydown(e) {
+        // Ignore shift/ctrl/alt/meta modifiers unless explicitly shift
+        if ((e.key !== "Shift" && e.shiftKey) || e.ctrlKey || e.altKey || e.metaKey)
+            return;
         switch (e.code) {
             case "ArrowUp":
                 e.preventDefault();
