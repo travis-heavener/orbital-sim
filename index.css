@@ -42,7 +42,7 @@ canvas {
 /******************** SCENE PICKER ********************/
 
 #scene-picker {
-    display: flex;
+    display: none;
     flex-direction: column;
     align-items: center;
 

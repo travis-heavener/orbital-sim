@@ -107,13 +107,10 @@ export const scenes = {
         pluto.radius *= 500;
 
         // Add to scene
+        scene.start();
         scene.add(sun, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune, pluto);
-
-        // Timewarp
         scene.setZoom(6e3);
         scene.setTimewarpIndex(TIMEWARPS.TIMEWARP_1E6X);
-
-        // Track Earth
         scene.track(sun);
     },
     "Earth & Moon": (scene: Scene) => {
@@ -135,12 +132,14 @@ export const scenes = {
             "name": "Moon"
         });
 
+        scene.start();
         scene.add(earth, moon);
         scene.setZoom(4.5);
         scene.setTimewarpIndex(TIMEWARPS.TIMEWARP_1E5X);
         scene.track(earth);
     },
     "Two Body Problem": (scene: Scene) => {
+        scene.start();
         scene.add(new Body({
             "pos": new Vector2(-4e7, 0),
             "velocity": new Vector2(0, -1e3),
@@ -162,6 +161,7 @@ export const scenes = {
         scene.setTimewarpIndex(TIMEWARPS.TIMEWARP_1E4X);
     },
     "Three Doomed Bodies": (scene: Scene) => {
+        scene.start();
         scene.add(new Body({
             "pos": new Vector2(4e7, 0),
             "mass": 2e24,

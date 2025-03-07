@@ -37,6 +37,7 @@ export class Scene {
     #ctx: CanvasRenderingContext2D; // Reference to the canvas 2D rendering context
     #sceneOpts: SceneOpts; // Canvas rendering options
     eventHandler: SceneEventHandler;
+    #animRequestID: number = null;
 
     // Simulation settings
     #timewarpIndex: number; // The timewarp index to apply to dt when ticking bodies
@@ -59,20 +60,7 @@ export class Scene {
     constructor(canvas: HTMLCanvasElement) {
         this.#canvas = canvas;
         this.#ctx = this.#canvas.getContext("2d");
-
-        this.bodies = [];
-
-        this.#sceneOpts = {
-            center: new Vector2(),
-            width: 0, height: 0
-        };
-
-        // Set initial zoom & timewarp
-        this.setZoom(1);
-        this.setTimewarpIndex(0);
-
-        // Initial viewport update
-        this.updateViewport();
+        this.reset();
 
         // Bind DOM events
         this.eventHandler = new SceneEventHandler(this, this.#canvas);
@@ -85,7 +73,7 @@ export class Scene {
             this.#createSidebarElement(body); // Create sidebar element
         }
     }
-    clear() { while (this.bodies.length) this.bodies.shift(); }
+    clear() { this.bodies = []; }
 
     track(body: Body) {
         // Animate to track center
@@ -292,7 +280,7 @@ export class Scene {
         // Update interval
         if (this.#isRunning) {
             this.#lastFrameTS = frameStart; // Update last frame start TS
-            requestAnimationFrame(t => this.#draw(t));
+            this.#animRequestID = requestAnimationFrame(t => this.#draw(t));
         }
     }
 
@@ -305,13 +293,39 @@ export class Scene {
     start() {
         if (this.#isRunning) return console.warn("Simulation already running.");
         this.#isRunning = true;
-        requestAnimationFrame(t => this.#draw(t));
+        this.#animRequestID = requestAnimationFrame(t => this.#draw(t));
     }
 
     // Stop intervals
     stop() {
         this.#isRunning = false;
         this.#lastFrameTS = null;
+
+        // Cancel next draw call
+        if (this.#animRequestID !== null) cancelAnimationFrame(this.#animRequestID);
+        this.#animRequestID = null;
+    }
+
+    // Reset scene
+    reset() {
+        this.stop(); // Stop sim
+        this.clear(); // Clear all bodies
+
+        // Reset scene opts
+        this.#sceneOpts = {
+            center: new Vector2(),
+            width: 0, height: 0
+        };
+
+        // Reset viweport (clears canvas)
+        this.updateViewport();
+
+        // Set initial zoom & timewarp
+        this.setZoom(1);
+        this.setTimewarpIndex(0);
+
+        // Clear bodies container
+        $("#bodies-container").html("");
     }
 
     #createSidebarElement(body: Body) {
