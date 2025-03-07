@@ -170,6 +170,19 @@ export class Scene {
                     const newBody = Body.merge(this.bodies[i], ...collidedBodies);
                     newBodies.push(newBody); // Add new body to bodies
                     this.#createSidebarElement(newBody); // Create new sidebar element
+                    // Track new body if needed
+                    if (this.#trackedBody === null)
+                        continue;
+                    if (this.bodies[i] === this.#trackedBody) {
+                        this.#trackedBody = newBody;
+                        continue;
+                    }
+                    for (let j = 0; j < collidedBodies.length; ++j) {
+                        if (collidedBodies[j] === this.#trackedBody) {
+                            this.#trackedBody = newBody;
+                            break;
+                        }
+                    }
                 }
             }
             // Free destroyed bodies (O(1) swap removal)
