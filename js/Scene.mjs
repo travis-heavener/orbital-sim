@@ -142,7 +142,7 @@ export class Scene {
     }
     setZoom(scale) {
         this.#zoomScale = Math.min(MAX_ZOOM, Math.max(1, scale));
-        $("#zoom")[0].value = "" + Math.floor(this.#zoomScale);
+        $("#zoom")[0].value = "" + Math.log2(this.#zoomScale);
     }
     // Control handlers
     toggleDebugStats() { this.#showDebugStats = !this.#showDebugStats; }

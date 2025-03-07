@@ -33,9 +33,11 @@ export class SceneEventHandler {
         // Intercept click events
         $(this.#canvas).on("click", e => this.#handleLeftClick(e));
         // Update zoom slider max value
-        $("#zoom")[0].max = "" + MAX_ZOOM;
+        const zoomInput = $("#zoom")[0];
+        zoomInput.max = "" + Math.log2(MAX_ZOOM);
+        zoomInput.step = "" + Math.log2(MAX_ZOOM) / 100;
         // Bind zoom slider events
-        $("#zoom").on("input change", e => this.#handleZoomSlider(e));
+        $(zoomInput).on("input change", e => this.#handleZoomSlider(e));
     }
     #setCursor(cursor) {
         this.#canvas.className = "canvas-" + cursor;
@@ -169,8 +171,8 @@ export class SceneEventHandler {
         }
     }
     #handleZoomSlider(e) {
-        const zoomValue = e.target.value;
-        this.#scene.setZoom(parseFloat(zoomValue));
+        const zoomValue = 2 ** parseFloat(e.target.value);
+        this.#scene.setZoom(zoomValue);
     }
 }
 ;

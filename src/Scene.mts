@@ -176,7 +176,7 @@ export class Scene {
     }
     setZoom(scale: number) {
         this.#zoomScale = Math.min(MAX_ZOOM, Math.max(1, scale));
-        ($("#zoom")[0] as HTMLInputElement).value = "" + Math.floor(this.#zoomScale);
+        ($("#zoom")[0] as HTMLInputElement).value = "" + Math.log2(this.#zoomScale);
     }
 
     // Control handlers

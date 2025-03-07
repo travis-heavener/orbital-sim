@@ -45,10 +45,12 @@ export class SceneEventHandler {
         $(this.#canvas).on("click", e => this.#handleLeftClick(e));
 
         // Update zoom slider max value
-        ($("#zoom")[0] as HTMLInputElement).max = "" + MAX_ZOOM;
+        const zoomInput = $("#zoom")[0] as HTMLInputElement;
+        zoomInput.max = "" + Math.log2(MAX_ZOOM);
+        zoomInput.step = "" + Math.log2(MAX_ZOOM) / 100;
 
         // Bind zoom slider events
-        $("#zoom").on("input change", e => this.#handleZoomSlider(e));
+        $(zoomInput).on("input change", e => this.#handleZoomSlider(e));
     }
 
     #setCursor(cursor: "dragging" | "draggable" | "default") {
@@ -195,7 +197,7 @@ export class SceneEventHandler {
     }
 
     #handleZoomSlider(e: JQuery.TriggeredEvent) {
-        const zoomValue = (e.target as HTMLInputElement).value;
-        this.#scene.setZoom(parseFloat(zoomValue));
+        const zoomValue = 2 ** parseFloat((e.target as HTMLInputElement).value);
+        this.#scene.setZoom(zoomValue);
     }
 };
