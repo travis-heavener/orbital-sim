@@ -30,7 +30,7 @@ export class SceneEventHandler {
         $(window).on("focus", () => this.#handleWindowFocus());
 
         // Zoom on scroll
-        $("body").on("wheel", e => this.#handleScroll(e));
+        $(this.#canvas).on("wheel", e => this.#handleScroll(e));
 
         // Key events
         $(window).on("keydown", e => this.#handleKeydown(e));

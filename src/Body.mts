@@ -97,7 +97,7 @@ export class Body {
             sceneOpts.height/2 + (sceneOpts.center.y - this.pos.y) / mPerPx
         );
     }
-
+    getColor() { return this.#color; }
     isVisible() { return this.#isVisible; }
     isDestroyed() { return this.#isDestroyed; }
     destroy() { this.#isDestroyed = true; }

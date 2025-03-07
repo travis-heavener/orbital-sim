@@ -76,6 +76,7 @@ export class Body {
     getDrawnPos(sceneOpts, mPerPx) {
         return new Vector2(sceneOpts.width / 2 - (sceneOpts.center.x - this.pos.x) / mPerPx, sceneOpts.height / 2 + (sceneOpts.center.y - this.pos.y) / mPerPx);
     }
+    getColor() { return this.#color; }
     isVisible() { return this.#isVisible; }
     isDestroyed() { return this.#isDestroyed; }
     destroy() { this.#isDestroyed = true; }

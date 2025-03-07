@@ -75,7 +75,13 @@ export class Scene {
         this.eventHandler = new SceneEventHandler(this, this.#canvas);
     }
 
-    add(...bodies: Body[]) { for (const body of bodies) this.bodies.push(body); }
+    add(...bodies: Body[]) {
+        for (let i = 0; i < bodies.length; ++i) {
+            const body = bodies[i];
+            this.bodies.push(body); // Append to bodies
+            this.#createSidebarElement(body); // Create sidebar element
+        }
+    }
     clear() { while (this.bodies.length) this.bodies.shift(); }
 
     // Simulation setters
@@ -132,8 +138,11 @@ export class Scene {
             for (let i = 0; i < this.bodies.length; ++i) {
                 // Merge bodies if collided
                 const collidedBodies = this.bodies[i].getCollidedBodies();
-                if (collidedBodies.length && !this.bodies[i].isDestroyed())
-                    newBodies.push( Body.merge(this.bodies[i], ...collidedBodies) );
+                if (collidedBodies.length && !this.bodies[i].isDestroyed()) {
+                    const newBody = Body.merge(this.bodies[i], ...collidedBodies);
+                    newBodies.push( newBody ); // Add new body to bodies
+                    this.#createSidebarElement( newBody ); // Create new sidebar element
+                }
             }
 
             // Free destroyed bodies (O(1) swap removal)
@@ -142,6 +151,7 @@ export class Scene {
                 if (body.isDestroyed()) {
                     this.bodies[i--] = this.bodies[this.bodies.length-1];
                     this.bodies.pop();
+                    $(`#body-${body.id}`).remove(); // Delete sidebar element
 
                     // Untrack if destroyed
                     if (this.#trackedBody === body) this.untrack();
@@ -224,5 +234,20 @@ export class Scene {
     stop() {
         this.#isRunning = false;
         this.#lastFrameTS = null;
+    }
+
+    #createSidebarElement(body: Body) {
+        const wrapper = document.createElement("DIV");
+        wrapper.id = "body-" + body.id;
+        wrapper.className = "body";
+        const title = body.name || body.id;
+        $(wrapper).append(`
+            <div class="body-icon" style="background: ${body.getColor()}"></div>
+            <h2 title="Track ${title}">${title}</h2>
+        `);
+        $("#bodies-container").append(wrapper);
+
+        // Add onclick functionality
+        $(wrapper).on("click", () => this.track(body));
     }
 };
