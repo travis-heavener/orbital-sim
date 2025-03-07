@@ -39,9 +39,46 @@ canvas {
 .canvas-draggable { cursor: grab; }
 .canvas-dragging { cursor: grabbing; }
 
+/******************** SCENE PICKER ********************/
+
+#scene-picker {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    padding: 25vh 20vw 15vh 20vw;
+
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: all;
+
+    overflow: hidden auto;
+}
+
+#scene-picker > h1 {
+    color: #f0f0f0;
+    font: 700 2.5rem/2 sans-serif;
+    text-decoration: underline #6495ed;
+}
+
+#scene-picker > h2 {
+    color: #e7e7e7;
+    font: 700 1.25rem/2 sans-serif;
+
+    cursor: pointer;
+    transition: 0.1s color;
+}
+
+#scene-picker > h2:hover { color: #6495ed; }
+#scene-picker > h2:active { color: #3e6fcb; }
+
 /******************** CONTROLS OVERLAY ********************/
 
 #controls-overlay {
+    display: none;
     position: absolute;
     top: 0;
     left: 0;
