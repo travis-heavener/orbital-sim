@@ -40,11 +40,6 @@ export const notifyUser = (msg: string) => {
     setTimeout(() => $(div).remove(), 3e3);
 };
 
-// Used to comma-separate numbers
-export const numberToCommaString = (n: number): string => {
-    return n.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",");
-}
-
 // Used to format timewarps
 const roundTimewarp = (w: number, floor: number) => Math.floor(w / floor * 10) / 10;
 export const formatTimewarp = (w: number): string => {

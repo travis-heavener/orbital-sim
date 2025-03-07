@@ -1,6 +1,6 @@
 import { Body } from "./Body.mjs";
 import { SceneEventHandler } from "./SceneEventHandler.mjs";
-import { adjustViewport, formatTimewarp, numberToCommaString } from "./toolbox.mjs";
+import { adjustViewport, formatTimewarp } from "./toolbox.mjs";
 import { Vector2 } from "./Vector2.mjs";
 
 const DEBUG_INTERVAL_MS = 500;
