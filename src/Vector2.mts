@@ -31,13 +31,40 @@ export class Vector2 {
         return this;
     }
 
-    add(x: Vector2 | number, y?: number) {
+    add(x: Vector2 | number, y?: number): Vector2 {
         if (x.constructor === Vector2) {
             this.x += x.x, this.y += x.y;
-            return;
+            return this;
         }
 
         this.x += x as number, this.y += y;
+        return this;
+    }
+
+    sub(x: Vector2 | number, y?: number): Vector2 {
+        if (x.constructor === Vector2) {
+            this.x -= x.x, this.y -= x.y;
+            return this;
+        }
+
+        this.x -= x as number, this.y -= y;
+        return this;
+    }
+
+    angle(): number {
+        return Math.atan2(this.y, this.x);
+    }
+
+    magnitude(): number {
+        return Math.hypot(this.x, this.y);
+    }
+
+    clampMagnitude(maxMag: number) {
+        const mag = this.magnitude();
+        if (mag <= maxMag) return;
+        
+        this.x *= maxMag / mag;
+        this.y *= maxMag / mag;
     }
 
     // Static methods

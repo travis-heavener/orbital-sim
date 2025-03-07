@@ -1,5 +1,5 @@
 import { SceneOpts } from "./Scene.mjs";
-import { uuidv4 } from "./toolbox.mjs";
+import { plotVector, uuidv4 } from "./toolbox.mjs";
 import { Vector2 } from "./Vector2.mjs";
 
 const G = 6.6743e-11; // Gravitational constant
@@ -80,7 +80,7 @@ export class Body {
 
         // Skip drawing if off screen
         if (!this.#isVisible) return;
-    
+
         // Draw from center-origin
         ctx.beginPath();
         ctx.arc(x, y, radius, 0, 2 * Math.PI);
@@ -88,6 +88,20 @@ export class Body {
         // Fill
         ctx.fillStyle = this.#color;
         ctx.fill();
+    }
+
+    // Used to draw debug info
+    renderDebugInfo(ctx: CanvasRenderingContext2D, sceneOpts: SceneOpts, mPerPx: number) {
+        // If the body is large enough, show debug info
+        const radius = this.radius / mPerPx;
+        const minDimension = Math.min(sceneOpts.width, sceneOpts.height);
+        const viewPercentage = (2*radius) / minDimension;
+        if (viewPercentage < 0.05) return;
+
+        // Draw vectors
+        const drawnPos = this.getDrawnPos(sceneOpts, mPerPx);
+        plotVector(ctx, drawnPos, this.velocity, 1.8*radius, "#4287f5"); // Plot velocity
+        plotVector(ctx, drawnPos, this.accel, 1.8*radius, "#f74336"); // Plot accel
     }
 
     // Calculate the position of the object on the canvas after scaling

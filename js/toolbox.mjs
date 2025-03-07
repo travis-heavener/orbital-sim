@@ -1,3 +1,4 @@
+import { Vector2 } from "./Vector2.mjs";
 // Adjust canvas size based on viewport
 export const adjustViewport = (canvas) => {
     // Update canvas dimensions
@@ -68,4 +69,37 @@ export const formatTimewarp = (w) => {
     }
     // Add prefix
     return `${w} ${prefix}${w === 1 ? "" : "s"}/sec`;
+};
+// Used to plot a vector on the canvas
+export const plotVector = (ctx, pos, vec, lengthPx, color) => {
+    // Calculate end position
+    const strokeWidth = lengthPx * 0.1;
+    const theta = vec.angle();
+    const end = Vector2.fromAngle(theta, lengthPx).add(pos);
+    // Draw main arrow
+    strokeLine(ctx, pos, end, strokeWidth, color);
+    // Draw arrow ends
+    const endLengthPx = lengthPx / 5;
+    const lowerTheta = theta - Math.PI / 3.5;
+    const upperTheta = theta + Math.PI / 3.5;
+    // Draw lower end of arrow
+    const arrowStart = new Vector2(end);
+    arrowStart.sub(endLengthPx * Math.cos(lowerTheta), endLengthPx * Math.sin(lowerTheta));
+    strokeLine(ctx, arrowStart, end, strokeWidth, color);
+    // Draw upper end of arrow
+    arrowStart.x = end.x, arrowStart.y = end.y;
+    arrowStart.sub(endLengthPx * Math.cos(upperTheta), endLengthPx * Math.sin(upperTheta));
+    strokeLine(ctx, arrowStart, end, strokeWidth, color);
+};
+// Used to stroke a line between two points
+const strokeLine = (ctx, from, to, width, color) => {
+    // Config
+    ctx.lineCap = "round";
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    // Draw path
+    ctx.beginPath();
+    ctx.moveTo(from.x, from.y);
+    ctx.lineTo(to.x, to.y);
+    ctx.stroke();
 };

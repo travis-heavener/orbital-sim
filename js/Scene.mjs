@@ -217,8 +217,12 @@ export class Scene {
         }
         // Clear canvas
         this.#ctx.clearRect(0, 0, this.#sceneOpts.width, this.#sceneOpts.height);
-        // Render children
+        // Render body debug info behind bodies
         const mPerPx = this.getMPerPX();
+        if (this.#showDebugStats)
+            for (let i = 0; i < this.bodies.length; ++i)
+                this.bodies[i].renderDebugInfo(this.#ctx, this.#sceneOpts, mPerPx);
+        // Render bodies
         for (let i = 0; i < this.bodies.length; ++i)
             this.bodies[i].render(this.#ctx, this.#sceneOpts, mPerPx);
         // Show debug stats
