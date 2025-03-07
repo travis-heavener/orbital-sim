@@ -59,22 +59,23 @@ canvas {
     position: absolute;
     top: 0;
     bottom: 0;
-
-    padding: 2vh 2vw 2vh 0;
 }
 
 #controls-left {
     align-items: flex-start;
     left: 0;
     right: 60vw;
+    padding: 2vh 0 2vh 2vw;
 }
 
 #controls-right {
     align-items: flex-end;
     left: 60vw;
     right: 0;
+    padding: 2vh 2vw 2vh 0;
 }
 
+#controls-left > h1,
 #controls-right > h1 {
     color: #f0f0f0;
     font: 700 1.5rem sans-serif;

@@ -180,7 +180,10 @@ export class Scene {
     }
 
     // Control handlers
-    toggleDebugStats() { this.#showDebugStats = !this.#showDebugStats; }
+    toggleDebugStats() {
+        this.#showDebugStats = !this.#showDebugStats;
+        if (!this.#showDebugStats) $("#fps").text("");
+    }
     togglePauseOnLostFocus() { this.#pauseOnLostFocus = !this.#pauseOnLostFocus; }
 
     updateViewport() {
@@ -264,17 +267,8 @@ export class Scene {
 
         // Show debug stats
         if (this.#showDebugStats) {
-            // Calculate TPS/FPS
-            let fps = "-";
-            if (this.#currentFPS !== null)
-                fps = this.#currentFPS.toFixed(1);
-
-            // Display telemetry
-            const { height } = this.#sceneOpts;
-            const fontSize = ~~(height / 50);
-            this.#ctx.fillStyle = "#f0f0f0";
-            this.#ctx.font = `bold ${fontSize}px sans-serif`;
-            this.#ctx.fillText(`FPS: ${fps}`, height * 0.02, height * 0.03);
+            const fps = this.#currentFPS?.toFixed(1) ?? "-";
+            $("#fps").text(`FPS: ${fps}`);
 
             // Update debug TS
             const now = Date.now();
