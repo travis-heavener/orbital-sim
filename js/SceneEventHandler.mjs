@@ -44,6 +44,11 @@ export class SceneEventHandler {
         zoomInput.step = "" + Math.log2(MAX_ZOOM) / 100;
         // Bind zoom slider events
         $(zoomInput).on("input change", e => this.#handleZoomSlider(e));
+        // Bind control events
+        $("#pause-control").on("click", () => this.#emulateKeydown("KeyP"));
+        $("#warp-slower-control").on("click", () => this.#emulateKeydown("ArrowLeft"));
+        $("#warp-faster-control").on("click", () => this.#emulateKeydown("ArrowRight"));
+        $("#debug-control").on("click", () => this.#emulateKeydown("KeyD"));
     }
     #setCursor(cursor) {
         this.#canvas.className = "canvas-" + cursor;
@@ -68,6 +73,9 @@ export class SceneEventHandler {
             return; // Ignore small zoom increments
         this.#scene.zoomBy(1 / (1 + viewportDelta)); // Update viewport scaling
         this.#scene.requestManualRedraw(); // Request redraw
+    }
+    #emulateKeydown(code) {
+        this.#handleKeydown({ code, preventDefault: () => { } });
     }
     #handleKeydown(e) {
         // Ignore shift/ctrl/alt/meta modifiers unless explicitly shift

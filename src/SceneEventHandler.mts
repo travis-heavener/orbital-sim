@@ -58,6 +58,12 @@ export class SceneEventHandler {
 
         // Bind zoom slider events
         $(zoomInput).on("input change", e => this.#handleZoomSlider(e));
+
+        // Bind control events
+        $("#pause-control").on("click", () => this.#emulateKeydown("KeyP"));
+        $("#warp-slower-control").on("click", () => this.#emulateKeydown("ArrowLeft"));
+        $("#warp-faster-control").on("click", () => this.#emulateKeydown("ArrowRight"));
+        $("#debug-control").on("click", () => this.#emulateKeydown("KeyD"));
     }
 
     #setCursor(cursor: "dragging" | "draggable" | "default") {
@@ -85,6 +91,10 @@ export class SceneEventHandler {
 
         this.#scene.zoomBy(1 / (1 + viewportDelta)); // Update viewport scaling
         this.#scene.requestManualRedraw(); // Request redraw
+    }
+
+    #emulateKeydown(code: string) {
+        this.#handleKeydown({code, preventDefault: () => {}} as JQuery.KeyDownEvent);
     }
 
     #handleKeydown(e: JQuery.KeyDownEvent) {

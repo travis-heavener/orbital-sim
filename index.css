@@ -91,7 +91,8 @@ canvas {
 }
 
 #controls-left > *,
-#controls-right > * {
+#controls-right > *,
+#controls-bottom > * {
     pointer-events: all;
 }
 
@@ -129,7 +130,7 @@ canvas {
 #controls-left > a {
     color: #f0f0f0;
     font: 700 1.75rem sans-serif;
-    text-decoration: underline #3e6fcb;
+    text-decoration: none;
     transition: 0.1s color;
 }
 
@@ -220,6 +221,29 @@ input#zoom::-webkit-slider-thumb {
     appearance: none;
     -webkit-appearance: none;
 }
+
+#controls-bottom {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    column-gap: 4rem;
+
+    position: fixed;
+    bottom: 0;
+    left: 5vw;
+    right: 5vw;
+    height: 5rem;
+}
+
+#controls-bottom > h1 {
+    color: #e29f0c;
+    font: 700 1.33rem/1.5 sans-serif;
+    cursor: pointer;
+    transition: 0.1s color;
+}
+
+#controls-bottom > h1:hover { color: #ffe6af; }
+#controls-bottom > h1:active { color: #91670e; }
 
 /******************** NOTIFICATION MODAL ********************/
 
