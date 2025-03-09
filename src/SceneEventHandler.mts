@@ -265,6 +265,7 @@ export class SceneEventHandler {
         this.#scene.setZoom(
             this.#pinchStartZoom / (newDist / this.#pinchStartDist)
         );
+        this.#scene.requestManualRedraw(); // Request redraw
     }
 
     #handleTouchEnd(e: JQuery.TouchEndEvent | JQuery.TouchCancelEvent) {

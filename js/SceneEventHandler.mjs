@@ -220,6 +220,7 @@ export class SceneEventHandler {
         // Handle pinch to zoom
         const newDist = Math.hypot(touches[1].clientX - touches[0].clientX, touches[1].clientY - touches[0].clientY);
         this.#scene.setZoom(this.#pinchStartZoom / (newDist / this.#pinchStartDist));
+        this.#scene.requestManualRedraw(); // Request redraw
     }
     #handleTouchEnd(e) {
         this.#handleMouseRelease();
