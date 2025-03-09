@@ -202,7 +202,7 @@ input#zoom {
     writing-mode: vertical-rl;
     direction: ltr;
     background: #aaa;
-    width: 8px;
+    width: 12px;
     appearance: none;
     -webkit-appearance: none;
 }
@@ -213,8 +213,8 @@ input#zoom::-webkit-slider-runnable-track {
 
 input#zoom::-webkit-slider-thumb {
     background: #ddd;
-    width: 16px;
-    height: 8px;
+    width: 20px;
+    height: 10px;
     appearance: none;
     -webkit-appearance: none;
 }
