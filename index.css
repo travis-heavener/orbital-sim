@@ -110,14 +110,14 @@ canvas {
     align-items: flex-start;
     left: 0;
     right: 60vw;
-    padding: 2vh 0 2vh 2vw;
+    padding: 3vh 0 2vh 2vw;
 }
 
 #controls-right {
     align-items: flex-end;
     left: 60vw;
     right: 0;
-    padding: 2vh 2vw 2vh 0;
+    padding: 3vh 2vw 2vh 0;
 }
 
 #controls-left > a,
@@ -135,6 +135,8 @@ canvas {
 
 #controls-left > a:hover { color: #6495ed; }
 #controls-left > a:active { color: #3e6fcb; }
+
+#fps { display: none; }
 
 #bodies-container {
     position: absolute;

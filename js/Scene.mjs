@@ -139,8 +139,7 @@ export class Scene {
     // Control handlers
     toggleDebugStats() {
         this.#showDebugStats = !this.#showDebugStats;
-        if (!this.#showDebugStats)
-            $("#fps").text("");
+        $("#fps").css("display", this.#showDebugStats ? "block" : "none");
     }
     togglePauseOnLostFocus() { this.#pauseOnLostFocus = !this.#pauseOnLostFocus; }
     updateViewport() {
