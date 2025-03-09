@@ -91,6 +91,7 @@ canvas {
 }
 
 #controls-left > *,
+#controls-top > *,
 #controls-right > *,
 #controls-bottom > * {
     pointer-events: all;
@@ -114,15 +115,10 @@ canvas {
     padding: 3vh 0 2vh 2vw;
 }
 
-#controls-right {
-    align-items: flex-end;
-    left: 60vw;
-    right: 0;
-    padding: 3vh 2vw 2vh 0;
-}
+#controls-right { right: 0; }
 
 #controls-left > a,
-#controls-right > h1 {
+#controls-top > h1 {
     color: #f0f0f0;
     font: 700 1.33rem sans-serif;
 }
@@ -137,11 +133,9 @@ canvas {
 #controls-left > a:hover { color: #6495ed; }
 #controls-left > a:active { color: #3e6fcb; }
 
-#fps { display: none; }
-
 #bodies-container {
     position: absolute;
-    top: 6rem;
+    top: 5vh;
     bottom: 4.5rem;
     right: 2.5vw;
     
@@ -221,6 +215,20 @@ input#zoom::-webkit-slider-thumb {
     appearance: none;
     -webkit-appearance: none;
 }
+
+#controls-top {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    column-gap: 4rem;
+
+    position: fixed;
+    top: 4vh;
+    left: 5vw;
+    right: 5vw;
+}
+
+#fps { display: none; }
 
 #controls-bottom {
     display: flex;
