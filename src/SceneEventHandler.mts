@@ -11,6 +11,8 @@ export class SceneEventHandler {
     #isPausedOnBlur = false;
     #draggingBy: "LMB" | "MMB" = null;
     #lastTouch: Vector2 = null;
+    #pinchStartDist: number = null; // Distance between both touch positions for pinch zoom
+    #pinchStartZoom: number; // Initial zoom when pinch was started
 
     constructor(scene: Scene, canvas: HTMLCanvasElement) {
         // Update internal references
@@ -40,6 +42,11 @@ export class SceneEventHandler {
         $(this.#canvas).on("mousedown", e => this.#handleMouseDown(e));
         $(this.#canvas).on("mousemove", e => this.#handleMouseMove(e));
         $(this.#canvas).on("mouseleave mouseup", () => this.#handleMouseRelease());
+
+        // Touch events
+        $(this.#canvas).on("touchstart", e => this.#handleTouchStart(e));
+        $(this.#canvas).on("touchmove", e => this.#handleTouchMove(e));
+        $(this.#canvas).on("touchend touchcancel", (e: any) => this.#handleTouchEnd(e));
 
         // Intercept click events
         $(this.#canvas).on("click", e => this.#handleLeftClick(e));
@@ -134,31 +141,38 @@ export class SceneEventHandler {
             this.#setCursor("default");
     }
 
-    #handleMouseDown(e: JQuery.MouseDownEvent) {
+    #handleMouseDown(e: JQuery.MouseDownEvent | JQuery.TouchStartEvent) {
         // Drag by Shift + LMB or MMB
-        if (!(e.which === 1 && e.shiftKey) && e.which !== 2) return;
+        if (e.originalEvent.constructor !== TouchEvent && !(e.which === 1 && e.shiftKey) && e.which !== 2)
+            return;
 
         // Intercept coordinates
-        this.#lastTouch = new Vector2(e.clientX, e.clientY);
+        const clientX = e.clientX ?? (e.originalEvent as TouchEvent).changedTouches[0].clientX;
+        const clientY = e.clientY ?? (e.originalEvent as TouchEvent).changedTouches[0].clientY;
+
+        this.#lastTouch = new Vector2(clientX, clientY);
         this.#setCursor("dragging"); // Update cursor
-        this.#draggingBy = e.which === 1 ? "LMB" : "MMB"; // Update dragging method
+        this.#draggingBy = e.which === 2 ? "MMB" : "LMB"; // Update dragging method
     }
 
-    #handleMouseMove(e: JQuery.MouseMoveEvent) {
+    #handleMouseMove(e: JQuery.MouseMoveEvent | JQuery.TouchMoveEvent) {
         if (this.#lastTouch === null) return;
 
         // Cancel tracking
         if (this.#scene.isTracking()) this.#scene.untrack();
 
+        const clientX = e.clientX ?? (e.originalEvent as TouchEvent).changedTouches[0].clientX;
+        const clientY = e.clientY ?? (e.originalEvent as TouchEvent).changedTouches[0].clientY;
+        
         // Move canvas
         const mPerPx = this.#scene.getMPerPX();
-        const dx = (this.#lastTouch.x - e.clientX) * mPerPx;
-        const dy = (e.clientY - this.#lastTouch.y) * mPerPx;
+        const dx = (this.#lastTouch.x - clientX) * mPerPx;
+        const dy = (clientY - this.#lastTouch.y) * mPerPx;
         const center = this.#scene.getViewportCenter();
         this.#scene.setViewportCenter( center.x + dx, center.y + dy );
 
         // Record coordinates
-        this.#lastTouch.x = e.clientX, this.#lastTouch.y = e.clientY;
+        this.#lastTouch.x = clientX, this.#lastTouch.y = clientY;
         this.#scene.requestManualRedraw(); // Request redraw
     }
 
@@ -202,5 +216,52 @@ export class SceneEventHandler {
     #handleZoomSlider(e: JQuery.TriggeredEvent) {
         const zoomValue = 2 ** parseFloat((e.target as HTMLInputElement).value);
         this.#scene.setZoom(zoomValue);
+    }
+
+    #handleTouchStart(e: JQuery.TouchStartEvent) {
+        // Check for single vs double touch
+        const { touches } = e.originalEvent;
+        if (this.#lastTouch === null)
+            this.#handleMouseDown(e);
+
+        // Unset pinch lock status
+        if (touches.length !== 2) return;
+
+        // Handle pinch to zoom
+        this.#pinchStartDist = Math.hypot(
+            touches[1].clientX - touches[0].clientX,
+            touches[1].clientY - touches[0].clientY
+        );
+        this.#pinchStartZoom = this.#scene.getZoomScale();
+    }
+
+    #handleTouchMove(e: JQuery.TouchMoveEvent) {
+        // Check for single vs double touch
+        const { touches } = e.originalEvent;
+        if (this.#lastTouch !== null && this.#pinchStartDist === null)
+            this.#handleMouseMove(e);
+
+        // Unset pinch lock status
+        if (touches.length !== 2) {
+            this.#pinchStartDist = this.#pinchStartZoom = null;
+            return;
+        }
+
+        // Handle pinch to zoom
+        const newDist = Math.hypot(
+            touches[1].clientX - touches[0].clientX,
+            touches[1].clientY - touches[0].clientY
+        );
+        this.#scene.setZoom(
+            this.#pinchStartZoom / (newDist / this.#pinchStartDist)
+        );
+    }
+
+    #handleTouchEnd(e: JQuery.TouchEndEvent | JQuery.TouchCancelEvent) {
+        this.#handleMouseRelease();
+
+        // Unset pinch lock status
+        if (e.originalEvent.touches.length === 0)
+            this.#pinchStartDist = this.#pinchStartZoom = null;
     }
 };

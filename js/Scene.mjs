@@ -117,6 +117,7 @@ export class Scene {
     getViewportCenter() { return this.#sceneOpts.center; }
     getTimewarpScale() { return timewarpIntervals[this.#timewarpIndex]; }
     getMPerPX() { return this.#zoomScale * DEFAULT_MPERPX; }
+    getZoomScale() { return this.#zoomScale; }
     isRunning() { return this.#isRunning; }
     isTracking() { return this.#trackedBody !== null; }
     doPauseOnLostFocus() { return this.#pauseOnLostFocus; }

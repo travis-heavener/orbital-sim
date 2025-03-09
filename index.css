@@ -6,9 +6,13 @@
     -webkit-box-sizing: border-box;
 }
 
+html, body {
+    overscroll-behavior: none;
+}
+
 html {
     width: 100vw;
-    height: 100vh;
+    height: 100%;
 }
 
 body {
@@ -241,4 +245,32 @@ input#zoom::-webkit-slider-thumb {
     0% { opacity: 0; }
     1%, 90% { opacity: 1; }
     100% { opacity: 0; }
+}
+
+/* mobile styles */
+
+#rotation-div {
+    display: none;
+    justify-content: center;
+    align-items: center;
+
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+
+    background-color: #060606;
+
+    z-index: 9999999;
+}
+
+#rotation-div > h1 {
+    color: #f0f0f0;
+    font: 700 2.5rem sans-serif;
+    text-align: center;
+}
+
+@media screen and (orientation: portrait) {
+    #rotation-div { display: flex; }
 }
